@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Convert">
+<meta name="theme-color" content="#f2c92e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Instant Unit Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=B612+Mono:wght@400;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: a full-width tape-yellow band holds one equation (what you type = the top answer).
+     Below it, two ruled tables on paper: more answers for this unit, then the same number read as every other unit. */
+  --paper: #f3f3ef;
+  --ink: #1a1915;
+  --mute: #66635a;
+  --rule: #d6d4cb;
+  --mark: #c22a1c;          /* tape-measure red: the value Enter will copy */
+  --tape: #f2c92e;          /* tape-measure yellow: the one place you type */
+  --tape-ink: #1a1808;
+  --tape-mark: #b3261a;
+  --wash: color-mix(in srgb, var(--ink) 7%, var(--paper));
+  --font-num: "B612 Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-ui: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #181714; --ink: #ece9df; --mute: #a39e90; --rule: #37352e; --mark: #ff7a66;
+    --tape: #efc62b; --tape-ink: #1a1808; --tape-mark: #b3261a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #181714; --ink: #ece9df; --mute: #a39e90; --rule: #37352e; --mark: #ff7a66;
+  --tape: #efc62b; --tape-ink: #1a1808; --tape-mark: #b3261a;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.45 var(--font-ui); }
+button { font: inherit; color: inherit; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+#probe { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: nowrap; font: 700 100px var(--font-num); }
+
+/* ── The band ─────────────────────────────────────────── */
+.band { position: relative; background: var(--tape); color: var(--tape-ink); }
+#tape { position: absolute; left: 0; right: 0; bottom: 0; top: env(safe-area-inset-top, 0px); width: 100%; height: calc(100% - env(safe-area-inset-top, 0px)); pointer-events: none; }
+.band-in { position: relative; max-width: 1120px; margin: 0 auto; padding: 36px 24px 32px; }
+.band { padding-top: env(safe-area-inset-top); }
+body { padding-bottom: env(safe-area-inset-bottom); }
+.band :focus-visible { outline-color: var(--tape-ink); }
+.eq {
+  display: grid; align-items: center; column-gap: 20px; row-gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "field eq answer" "status . hint";
+}
+.field { grid-area: field; position: relative; font: 700 60px/1.15 var(--font-num); }
+.field input {
+  display: block; width: 100%; margin: 0; padding: 6px 12px;
+  font: inherit; color: var(--tape-ink); caret-color: var(--tape-mark);
+  background: rgba(255, 255, 255, .26); border: 0; border-radius: 4px 4px 0 0;
+  border-bottom: 3px solid color-mix(in srgb, var(--tape-ink) 40%, transparent);
+  outline: none; appearance: none;
+}
+.field input:focus { background: rgba(255, 255, 255, .46); border-bottom-color: var(--tape-ink); }
+.field input::placeholder { color: color-mix(in srgb, var(--tape-ink) 42%, transparent); opacity: 1; }
+.field input::selection { background: var(--tape-ink); color: var(--tape); }
+.ghost {
+  position: absolute; inset: 0; display: flex; align-items: center; padding: 6px 12px;
+  border-bottom: 3px solid transparent; white-space: pre; overflow: hidden; pointer-events: none;
+}
+.ghost i { visibility: hidden; font-style: normal; }
+.ghost b { font-weight: 400; color: color-mix(in srgb, var(--tape-ink) 48%, transparent); }
+.equals { grid-area: eq; font: 400 44px/1 var(--font-num); opacity: .55; }
+.answer { grid-area: answer; min-width: 0; font: 700 60px/1.15 var(--font-num); }
+.hero {
+  position: relative; max-width: 100%; padding: 6px 12px 6px 18px; text-align: left;
+  font: inherit; color: var(--tape-ink); background: none; border: 0; border-radius: 4px;
+  cursor: pointer; overflow-wrap: anywhere; font-variant-numeric: tabular-nums;
+}
+.hero .u { font-weight: 400; }
+.hero:hover:not(:disabled) { background: rgba(255, 255, 255, .3); }
+.hero:disabled { cursor: default; opacity: .5; }
+.hero.sel::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px; background: var(--tape-mark); }
+.sub { margin: 0; min-height: 2.7em; font: 500 15px/1.35 var(--font-ui); color: color-mix(in srgb, var(--tape-ink) 82%, transparent); }
+#status { grid-area: status; padding-left: 12px; }
+#status.bad { color: var(--tape-ink); font-weight: 600; }
+#hint { grid-area: hint; padding-left: 18px; }
+.chip {
+  margin: 0 1px; padding: 0 8px; font: 500 14px/1.5 var(--font-ui); color: var(--tape-ink);
+  background: transparent; border: 1.5px solid var(--tape-ink); border-radius: 999px; cursor: pointer;
+}
+.chip:hover { background: var(--tape-ink); color: var(--tape); }
+
+.padkeys, .unitbar, .quad { display: none; }
+.quad { grid-area: quad; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+.quad button {
+  min-height: 46px; padding: 4px 10px; text-align: left; color: var(--tape-ink); cursor: pointer;
+  background: rgba(255, 255, 255, .34); border: 0; border-radius: 6px; overflow-wrap: anywhere;
+}
+.quad button:first-child { background: rgba(255, 255, 255, .62); }
+.quad .v { font: 700 20px/1.2 var(--font-num); font-variant-numeric: tabular-nums; }
+.quad .u { font: 600 15px/1.2 var(--font-ui); }
+.quad .e { display: block; font: 500 12px/1.2 var(--font-ui); opacity: .72; }
+.padkeys { grid-area: keys; gap: 5px; }
+.padkeys button {
+  flex: 1 1 0; min-width: 0; height: 36px; padding: 0 4px; font: 600 16px/1 var(--font-ui); color: var(--tape-ink);
+  background: rgba(255, 255, 255, .5); border: 1.5px solid var(--tape-ink); border-radius: 6px; cursor: pointer;
+}
+.unitbar { grid-area: units; gap: 12px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+.unitbar::-webkit-scrollbar { display: none; }
+.unitbar button {
+  flex: none; min-width: 52px; height: 40px; padding: 0 12px; font: 600 17px/1 var(--font-ui); color: var(--tape-ink);
+  background: transparent; border: 1.5px solid var(--tape-ink); border-radius: 999px; cursor: pointer;
+}
+.unitbar button.on { background: var(--tape-ink); color: var(--tape); }
+.ugroup { display: flex; flex: none; gap: 6px; }
+.ugroup + .ugroup { padding-left: 12px; border-left: 1.5px solid color-mix(in srgb, var(--tape-ink) 30%, transparent); }
+
+/* ── The two tables ───────────────────────────────────── */
+main {
+  max-width: 1120px; margin: 0 auto; padding: 28px 24px 12px;
+  display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 32px 56px; align-items: start;
+}
+h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
+.rows { list-style: none; margin: 10px 0 0; padding: 0; border-top: 2px solid var(--ink); }
+.rows li { border-bottom: 1px solid var(--rule); }
+.rows .none { padding: 12px 16px; color: var(--mute); }
+.row {
+  position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px;
+  width: 100%; padding: 11px 10px 11px 16px; text-align: left; background: none; border: 0; cursor: pointer;
+}
+.row .v { font: 400 21px/1.25 var(--font-num); font-variant-numeric: tabular-nums; }
+.row .u { font: 500 16px/1.25 var(--font-ui); color: var(--mute); }
+.row .c { margin-left: auto; font-size: 13px; color: var(--mute); opacity: 0; }
+.row .n { flex-basis: 100%; font-size: 14px; color: var(--mute); }
+.row:hover, .row.sel { background: var(--wash); }
+.row:hover .c, .row.sel .c, .row:focus-visible .c { opacity: 1; }
+.row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mark); }
+
+.others-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.tip { margin: 0; font-size: 14px; color: var(--mute); }
+.grid { margin-top: 10px; border-top: 2px solid var(--ink); }
+.cat { display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.cat.head { padding: 5px 0; font-size: 13px; color: var(--mute); }
+.cat.head span { padding-left: 8px; }
+.cat-name { font: 600 14px/28px var(--font-ui); color: var(--mute); }
+.col { display: grid; align-content: start; }
+.pair { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: start; border-radius: 3px; }
+.src, .val { min-height: 28px; padding: 3px 8px; text-align: left; background: none; border: 0; border-radius: 3px; cursor: pointer; }
+.src { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font: 500 15px/22px var(--font-ui); white-space: nowrap; }
+.src::after { content: "\2192"; color: var(--mute); font: 400 13px/1 system-ui, sans-serif; }
+.val { line-height: 22px; }
+.val .v { font: 400 15px/22px var(--font-num); font-variant-numeric: tabular-nums; }
+.val .u { font: 500 14px/22px var(--font-ui); color: var(--mute); }
+.src:hover, .val:hover { background: var(--wash); }
+.pair.on { background: var(--wash); box-shadow: inset 3px 0 0 var(--mark); }
+.pair.on .src { font-weight: 600; }
+.quiet .cat:not(.head) { opacity: .62; }
+.quiet:hover .cat, .quiet:focus-within .cat { opacity: 1; }
+.copied { background: color-mix(in srgb, var(--mark) 20%, transparent) !important; }
+.band .copied { background: rgba(255, 255, 255, .6) !important; }
+
+/* ── Real-size ruler setup ───────────────────────────── */
+.cal {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; gap: 12px;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--paper); border-top: 2px solid var(--ink); box-shadow: 0 -8px 24px rgba(0, 0, 0, .18);
+}
+.cal[hidden] { display: none; }
+.cal h2 { font-size: 17px; }
+.cal p { margin: 0; font-size: 15px; color: var(--mute); max-width: 60ch; }
+.calbar {
+  height: 48px; max-width: 100%; display: flex; align-items: center; justify-content: center;
+  font: 500 14px/1 var(--font-ui); background: var(--wash);
+  border-left: 3px solid var(--mark); border-right: 3px solid var(--mark);
+}
+.calrow { display: flex; gap: 10px; align-items: center; }
+.calrow input { flex: 1; min-width: 0; accent-color: var(--mark); }
+.calrow button { min-width: 52px; height: 48px; padding: 0 16px; font: 600 18px/1 var(--font-ui); background: none; border: 1.5px solid var(--ink); border-radius: 8px; cursor: pointer; }
+.calrow .done { margin-left: auto; background: var(--ink); color: var(--paper); }
+.calfoot { max-width: 1120px; margin: 0 auto; padding: 0 24px calc(32px + env(safe-area-inset-bottom, 0px)); font-size: 15px; color: var(--mute); }
+.calnote + .calnote { border-top: 0; padding-top: 12px; }
+.den { min-width: 52px; min-height: 36px; font-size: 15px; }
+.den.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.calnote { margin: 0; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+
+/* ── Reference ────────────────────────────────────────── */
+.ref-wrap { margin-top: 24px; border-top: 1px solid var(--rule); }
+.ref {
+  max-width: 1120px; margin: 0 auto; padding: 24px 24px 48px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 48px;
+  font-size: 15px; color: var(--mute);
+}
+.ref h2 { margin-bottom: 10px; font-size: 15px; color: var(--ink); }
+.ref p { margin: 0 0 8px; max-width: 46ch; }
+.ways { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; align-items: baseline; }
+.ways dt, .ways dd { margin: 0; }
+.try, kbd { font: 400 13px/1.5 var(--font-num); color: var(--ink); }
+.try { padding: 1px 7px; background: none; border: 1px solid var(--rule); border-radius: 3px; cursor: pointer; white-space: nowrap; }
+.try:hover { border-color: var(--ink); }
+kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; }
+.units b { font-weight: 600; color: var(--ink); }
+.units button { padding: 0 3px; background: none; border: 0; color: var(--mute); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.units button:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .row, .src, .val, .hero, .chip { transition: background-color .12s; }
+}
+@media (max-width: 900px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  .ref { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  /* phone: number pad, one-tap unit bar, and every answer for the unit packed above the keyboard */
+  .band-in { padding: 18px 12px 18px; }
+  .equals, .answer { display: none; }
+  .quad { display: grid; }
+  .rows li:nth-child(-n+3) { display: none; }
+  /* the bare-number table and keyboard notes are desktop tools; on a phone the unit bar does that job */
+  #others, .ref > section:not(.units) { display: none; }
+  .ref-wrap { margin-top: 0; border-top: 0; }
+  .ref { padding-top: 16px; padding-bottom: 24px; }
+  .calfoot { padding-left: 16px; padding-right: 16px; }
+  .units p { margin-bottom: 10px; max-width: none; line-height: 2.3; }
+  .units b { display: block; line-height: 1.4; }
+  .units button { padding: 7px 12px; margin: 0 4px 0 0; font-size: 17px; color: var(--ink); text-decoration: none; border: 1px solid var(--rule); border-radius: 999px; }
+  main { padding: 0 0 12px; gap: 20px; }
+  main > section { padding: 0 12px; }
+  main > section:first-child { padding: 0; }
+  main > section:first-child h2 { display: none; }
+  .ref { padding-left: 16px; padding-right: 16px; }
+  .eq { grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; row-gap: 6px; grid-template-areas: "field field" "keys keys" "units units" "status status" "quad quad" "hint hint"; }
+  .equals { font-size: 26px; padding-left: 8px; }
+  .hero { padding: 2px 10px 2px 14px; }
+  .hero.sel::before { top: 6px; bottom: 6px; }
+  .sub { min-height: 0; display: none; }
+  .sub.need { display: block; padding-left: 8px; }
+  .padkeys, .unitbar { display: flex; }
+  .padkeys button[data-key="'"], .padkeys button[data-key='"'] { font: 700 22px/1 var(--font-num); }
+  .rows { margin-top: 0; border-top: 0; }
+  .row { padding: 9px 12px 9px 16px; }
+  .row .c { opacity: 1; }
+  .others-head { padding-top: 4px; }
+}
+@media (max-width: 520px) {
+  .cat { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 8px; }
+  .cat-name { grid-column: 1 / -1; line-height: 22px; padding-left: 8px; }
+  .cat.head span:first-child { display: none; }
+  .pair { grid-template-columns: 70px minmax(0, 1fr); }
+  .src, .val { padding-left: 6px; padding-right: 4px; }
+  .src::after { content: none; }
+}
+</style>
+</head>
+<body>
+<h1 class="vh">Instant Unit Converter</h1>
+<span id="probe" aria-hidden="true">00000000000000000000</span>
+
+<section class="band" aria-label="Convert a value">
+  <canvas id="tape" aria-hidden="true"></canvas>
+  <div class="band-in">
+    <div class="eq">
+      <div class="field" id="field">
+        <label class="vh" for="q">Value to convert, with or without a unit</label>
+        <input id="q" type="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" autofocus>
+        <div class="ghost" id="ghost" aria-hidden="true"></div>
+      </div>
+      <div class="padkeys" id="padkeys" role="group" aria-label="Extra keys">
+        <button type="button" data-key="/" aria-label="Slash">/</button>
+        <button type="button" data-key=" " aria-label="Space">space</button>
+        <button type="button" data-key="'" aria-label="Feet">&prime;</button>
+        <button type="button" data-key='"' aria-label="Inches">&Prime;</button>
+        <button type="button" id="neg" title="Make the number negative or positive" aria-label="Plus or minus">&plusmn;</button>
+        <button type="button" id="kb" title="Switch between the number pad and the full keyboard">abc</button>
+      </div>
+      <div class="unitbar" id="unitbar" role="group" aria-label="Read the number as"></div>
+      <div class="equals" aria-hidden="true">=</div>
+      <div class="answer" id="answer"><button type="button" class="hero" id="hero" title="Click to copy"></button></div>
+      <div class="quad" id="quad"></div>
+      <p class="sub" id="status"></p>
+      <p class="sub" id="hint"></p>
+      <span class="vh" id="live" aria-live="polite"></span>
+    </div>
+  </div>
+</section>
+
+<main>
+  <section aria-labelledby="alsoHead">
+    <h2 id="alsoHead"></h2>
+    <ul class="rows" id="also"></ul>
+  </section>
+  <section id="others" aria-labelledby="gridHead">
+    <div class="others-head">
+      <h2 id="gridHead"></h2>
+      <p class="tip">Click a value to copy it. Click a unit to switch to it.</p>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<div class="ref-wrap">
+<footer class="ref">
+  <section aria-labelledby="waysHead">
+    <h2 id="waysHead">Ways to type a value</h2>
+    <dl class="ways">
+      <dt><button type="button" class="try" data-try="25.4">25.4</button></dt><dd>A bare number reads as the last unit you used.</dd>
+      <dt><button type="button" class="try" data-try="25.4mm">25.4mm</button></dt><dd>Put the unit after the number. The space is optional.</dd>
+      <dt><button type="button" class="try" data-try="1 3/8">1 3/8</button></dt><dd>A fraction with no unit reads as inches.</dd>
+      <dt><button type="button" class="try" data-try="5' 7&quot;">5' 7"</button></dt><dd>Feet and inches. 5ft 7in works too.</dd>
+      <dt><button type="button" class="try" data-try="72f">72f</button></dt><dd>f, c and k are the temperatures.</dd>
+      <dt><button type="button" class="try" data-try="40psi>kpa">40psi&gt;kpa</button></dt><dd>Name a target to put it on top. Typing "to" works as well.</dd>
+      <dt><button type="button" class="try" data-try="thou">thou</button></dt><dd>A unit alone shows what one of it is.</dd>
+    </dl>
+  </section>
+  <section aria-labelledby="keysHead">
+    <h2 id="keysHead">Keys</h2>
+    <p><kbd>Enter</kbd> copies the marked value. <kbd>Shift</kbd>+<kbd>Enter</kbd> copies it with its unit.</p>
+    <p><kbd>&uarr;</kbd> <kbd>&darr;</kbd> move the mark to another row. It stays there while you type new numbers.</p>
+    <p><kbd>Esc</kbd> clears the box. After a copy, typing a number replaces the value and typing a unit swaps only the unit.</p>
+    <p>Start typing from anywhere on the page and it lands in the box.</p>
+  </section>
+  <section class="units" aria-labelledby="unitsHead">
+    <h2 id="unitsHead">All units</h2>
+    <p class="tip" style="margin-bottom:10px">Tap one to convert from it.</p>
+    <div id="unitList"></div>
+  </section>
+</footer>
+<div class="calfoot">
+  <p class="calnote" role="group" aria-label="Fraction precision"><span>Fractions to the nearest</span>
+    <button type="button" class="try den" data-den="16">1/16</button><button type="button" class="try den" data-den="32">1/32</button><button type="button" class="try den" data-den="64">1/64</button></p>
+  <p class="calnote"><button type="button" class="try" id="calOpen">Ruler size</button> <span id="calStatus"></span></p>
+</div>
+</div>
+
+<div class="cal" id="cal" hidden role="dialog" aria-labelledby="calHead">
+  <h2 id="calHead">Make the ruler real size</h2>
+  <p>Lay a bank card across the screen and match this bar to the card's short side. Or hold a real ruler against the yellow edge at the top.</p>
+  <div class="calbar" id="calbar">54 mm, a bank card's short side</div>
+  <div class="calrow">
+    <button type="button" id="calMinus" aria-label="Smaller">&minus;</button>
+    <input type="range" id="calRange" min="2.5" max="9" step="0.005" aria-label="Ruler scale">
+    <button type="button" id="calPlus" aria-label="Larger">+</button>
+  </div>
+  <div class="calrow">
+    <button type="button" id="calReset">Reset</button>
+    <button type="button" class="done" id="calDone">Done</button>
+  </div>
+</div>
+
+<script id="core">
+/* Units, parsing and maths. No DOM in here. */
+const UC = (() => {
+  const K0 = 273.15;
+  // [id, label, name, factor to the category's base unit (or {to, from}), targets in priority order, typed aliases]
+  const CATALOG = [
+    ['Length', [ // base: metre
+      ['mm', 'mm', 'millimetres', 1e-3, 'in in:frac ft ft:ftin cm thou m', 'mm millimeter millimeters millimetre millimetres'],
+      ['cm', 'cm', 'centimetres', 1e-2, 'in in:frac ft ft:ftin mm m', 'cm centimeter centimeters centimetre centimetres'],
+      ['m', 'm', 'metres', 1, 'ft ft:ftin in yd cm mm', 'm meter meters metre metres'],
+      ['km', 'km', 'kilometres', 1e3, 'mi m ft yd', 'km kilometer kilometers kilometre kilometres'],
+      ['um', 'µm', 'micrometres', 1e-6, 'thou mm in', 'um micron microns micrometer micrometers micrometre micrometres'],
+      ['in', 'in', 'inches', 0.0254, 'mm in:frac cm ft:ftin ft m thou', 'in " inch inches'],
+      ['thou', 'thou', 'thousandths of an inch', 0.0000254, 'mm um in', 'thou thous mil mils'],
+      ['ft', 'ft', 'feet', 0.3048, 'm cm mm in yd', "ft ' foot feet"],
+      ['yd', 'yd', 'yards', 0.9144, 'm ft in cm', 'yd yds yard yards'],
+      ['mi', 'mi', 'miles', 1609.344, 'km m ft yd', 'mi mile miles'],
+    ]],
+    ['Temperature', [ // base: kelvin
+      ['C', '°C', 'degrees Celsius', { to: v => v + K0, from: b => b - K0 }, 'F K', 'c degc celsius centigrade'],
+      ['F', '°F', 'degrees Fahrenheit', { to: v => (v - 32) * 5 / 9 + K0, from: b => (b - K0) * 9 / 5 + 32 }, 'C K', 'f degf fahrenheit'],
+      ['K', 'K', 'kelvin', 1, 'C F', 'k kelvin'],
+    ]],
+    ['Weight', [ // base: kilogram
+      ['mg', 'mg', 'milligrams', 1e-6, 'g oz', 'mg milligram milligrams'],
+      ['g', 'g', 'grams', 1e-3, 'oz lb kg', 'g gram grams'],
+      ['kg', 'kg', 'kilograms', 1, 'lb lb:lboz oz g', 'kg kgs kilo kilos kilogram kilograms'],
+      ['t', 't', 'tonnes', 1e3, 'lb ton kg', 't tonne tonnes metricton'],
+      ['oz', 'oz', 'ounces', 0.028349523125, 'g kg lb', 'oz ounce ounces'],
+      ['lb', 'lb', 'pounds', 0.45359237, 'kg g oz', 'lb lbs pound pounds #'],
+      ['ton', 'US ton', 'US short tons', 907.18474, 't kg lb', 'ton tons uston shortton'],
+    ]],
+    ['Volume', [ // base: litre
+      ['mL', 'mL', 'millilitres', 1e-3, 'floz tsp tbsp cup L', 'ml cc cm3 milliliter milliliters millilitre millilitres'],
+      ['L', 'L', 'litres', 1, 'gal igal qt cup floz mL', 'l liter liters litre litres'],
+      ['m3', 'm³', 'cubic metres', 1e3, 'ft3 L gal', 'm3 cubicmeter cubicmeters cubicmetre cubicmetres'],
+      ['tsp', 'tsp', 'US teaspoons', 0.00492892159375, 'mL tbsp floz', 'tsp teaspoon teaspoons'],
+      ['tbsp', 'tbsp', 'US tablespoons', 0.01478676478125, 'mL tsp floz cup', 'tbsp tbs tablespoon tablespoons'],
+      ['floz', 'fl oz', 'US fluid ounces', 0.0295735295625, 'mL L cup tbsp', 'floz fluidounce fluidounces'],
+      ['cup', 'cup', 'US cups', 0.2365882365, 'mL L floz tbsp', 'cup cups'],
+      ['pt', 'pt', 'US pints', 0.473176473, 'L mL cup qt', 'pt pint pints'],
+      ['qt', 'qt', 'US quarts', 0.946352946, 'L mL gal', 'qt quart quarts'],
+      ['gal', 'US gal', 'US gallons', 3.785411784, 'L igal qt', 'gal gals gallon gallons usgal'],
+      ['igal', 'imp gal', 'imperial gallons', 4.54609, 'L gal', 'igal impgal ukgal imperialgallon imperialgallons'],
+      ['in3', 'in³', 'cubic inches', 0.016387064, 'mL L floz', 'in3 cuin ci cubicinch cubicinches'],
+      ['ft3', 'ft³', 'cubic feet', 28.316846592, 'L m3 gal', 'ft3 cuft cf cubicfoot cubicfeet'],
+    ]],
+    ['Torque', [ // base: newton-metre
+      ['Nm', 'N·m', 'newton-metres', 1, 'ftlb inlb kgcm', 'nm newtonmeter newtonmeters newtonmetre newtonmetres'],
+      ['kgcm', 'kg·cm', 'kilogram-force centimetres', 0.0980665, 'Nm ozin inlb', 'kgcm kgfcm'],
+      ['ftlb', 'ft·lb', 'foot-pounds', 1.3558179483314004, 'Nm inlb', 'ftlb ftlbs lbft ftlbf lbfft footpound footpounds'],
+      ['inlb', 'in·lb', 'inch-pounds', 0.1129848290276167, 'Nm ftlb kgcm', 'inlb inlbs lbin inlbf lbfin inchpound inchpounds'],
+      ['ozin', 'oz·in', 'ounce-inches', 0.00706155181422604, 'kgcm Nm inlb', 'ozin inoz'],
+    ]],
+    ['Pressure', [ // base: pascal
+      ['kPa', 'kPa', 'kilopascals', 1e3, 'psi bar atm', 'kpa kilopascal kilopascals'],
+      ['MPa', 'MPa', 'megapascals', 1e6, 'psi bar kPa', 'mpa megapascal megapascals'],
+      ['bar', 'bar', 'bar', 1e5, 'psi kPa atm', 'bar bars'],
+      ['psi', 'psi', 'pounds per square inch', 6894.757293168361, 'bar kPa MPa', 'psi'],
+      ['atm', 'atm', 'atmospheres', 101325, 'psi bar kPa', 'atm atmosphere atmospheres'],
+    ]],
+    ['Speed', [ // base: metre per second
+      ['mm/s', 'mm/s', 'millimetres per second', 1e-3, 'mm/min in/min m/min', 'mm/s mm/sec'],
+      ['mm/min', 'mm/min', 'millimetres per minute', 1e-3 / 60, 'in/min mm/s m/min', 'mm/min mmpm'],
+      ['m/min', 'm/min', 'metres per minute', 1 / 60, 'ft/min m/s km/h', 'm/min mpm'],
+      ['m/s', 'm/s', 'metres per second', 1, 'km/h mph ft/min', 'm/s mps m/sec'],
+      ['km/h', 'km/h', 'kilometres per hour', 1 / 3.6, 'mph m/s kn', 'km/h kmh kph kmph km/hr'],
+      ['in/min', 'in/min', 'inches per minute', 0.0254 / 60, 'mm/min mm/s', 'in/min ipm'],
+      ['ft/min', 'ft/min', 'feet per minute', 0.3048 / 60, 'm/min m/s mph', 'ft/min fpm'],
+      ['mph', 'mph', 'miles per hour', 0.44704, 'km/h m/s kn', 'mph mi/h mi/hr'],
+      ['kn', 'kn', 'knots', 1852 / 3600, 'km/h mph m/s', 'kn kt kts knot knots'],
+    ]],
+    ['Area', [ // base: square metre
+      ['mm2', 'mm²', 'square millimetres', 1e-6, 'in2 cm2', 'mm2 sqmm'],
+      ['cm2', 'cm²', 'square centimetres', 1e-4, 'in2 mm2', 'cm2 sqcm'],
+      ['m2', 'm²', 'square metres', 1, 'ft2 in2', 'm2 sqm squaremeter squaremeters squaremetre squaremetres'],
+      ['ha', 'ha', 'hectares', 1e4, 'acre m2 ft2', 'ha hectare hectares'],
+      ['in2', 'in²', 'square inches', 0.00064516, 'cm2 mm2', 'in2 sqin squareinch squareinches'],
+      ['ft2', 'ft²', 'square feet', 0.09290304, 'm2 in2', 'ft2 sqft sf squarefoot squarefeet'],
+      ['acre', 'acre', 'acres', 4046.8564224, 'ha m2 ft2', 'acre acres ac'],
+    ]],
+    ['Power', [ // base: watt
+      ['W', 'W', 'watts', 1, 'hp kW', 'w watt watts'],
+      ['kW', 'kW', 'kilowatts', 1e3, 'hp W', 'kw kilowatt kilowatts'],
+      ['hp', 'hp', 'horsepower', 745.69987158227, 'kW W', 'hp horsepower'],
+    ]],
+    ['Force', [ // base: newton
+      ['N', 'N', 'newtons', 1, 'lbf kgf', 'n newton newtons'],
+      ['kgf', 'kgf', 'kilograms-force', 9.80665, 'N lbf', 'kgf'],
+      ['lbf', 'lbf', 'pounds-force', 4.4482216152605, 'N kgf', 'lbf'],
+    ]],
+    ['Angle', [ // base: radian
+      ['deg', 'deg', 'degrees', Math.PI / 180, 'rad', 'deg degree degrees'],
+      ['rad', 'rad', 'radians', 1, 'deg', 'rad radian radians'],
+    ]],
+  ];
+  // The always-visible table: [row name, metric sources, imperial sources]. Each shows its first target.
+  const TABLE = [
+    ['Length', 'mm cm m km', 'in ft mi thou'],
+    ['Temperature', 'C', 'F'],
+    ['Weight', 'g kg', 'oz lb'],
+    ['Volume', 'mL L', 'floz gal'],
+    ['Torque', 'Nm kgcm', 'ftlb inlb'],
+    ['Pressure', 'bar kPa', 'psi'],
+    ['Speed', 'km/h mm/min m/min', 'mph in/min ft/min'],
+    ['Area', 'm2', 'ft2'],
+    ['Power', 'kW', 'hp'],
+    ['Force', 'N', 'lbf'],
+  ];
+
+  const UNITS = [], BY = {}, ALIAS = new Map(), clashes = [];
+  for (const [cat, list] of CATALOG) for (const [id, label, name, f, targets, aliases] of list) {
+    const u = {
+      id, label, name, cat, targets: targets.split(' '), keys: aliases.split(' '),
+      to: typeof f === 'number' ? v => v * f : f.to,
+      from: typeof f === 'number' ? b => b / f : f.from,
+    };
+    UNITS.push(u); BY[id] = u;
+    for (const k of u.keys) { if (ALIAS.has(k)) clashes.push(k); ALIAS.set(k, u); }
+  }
+  const COMMON = new Set(TABLE.flatMap(r => (r[1] + ' ' + r[2]).split(' ')));
+
+  // ── formatting ──
+  function fmt(x, sig = 6) {
+    if (!Number.isFinite(x)) return '?';
+    if (x === 0) return '0';
+    const a = Math.abs(x);
+    if (a >= 1e12 || a < 1e-6) return x.toExponential(Math.min(sig - 1, 4)).replace(/\.?0+e/, 'e').replace('e+', 'e');
+    if (a >= 1) return String(parseFloat(x.toFixed(Math.max(0, sig - Math.floor(Math.log10(a)) - 1))));
+    return String(parseFloat(x.toPrecision(sig)));
+  }
+  const group = s => s.replace(/^(-?)(\d{5,})/, (_, sg, d) => sg + d.replace(/\B(?=(\d{3})+$)/g, ' '));
+  function fraction(x, den) { // x >= 0, rounded to the nearest 1/den and reduced
+    let whole = Math.floor(x), num = Math.round((x - whole) * den), d = den;
+    if (num === d) { whole += 1; num = 0; }
+    while (num && num % 2 === 0) { num /= 2; d /= 2; }
+    return { whole, num, den: d, value: whole + num / d };
+  }
+
+  // ── every answer for one reading of the number ──
+  function rows(p) {
+    const u = p.unit, v = p.value, out = [];
+    let list = u.targets;
+    if (p.target) list = [p.target.id, ...list.filter(t => t !== p.target.id)];
+    for (const t of list) {
+      const [tid, mode] = t.split(':');
+      const tu = BY[tid], x = tu.from(u.to(v));
+      if (!mode) { const s = fmt(x); out.push({ show: group(s), unit: tu.label, copy: s, copyUnit: s + ' ' + tu.label, note: '' }); continue; }
+      const a = Math.abs(x), sg = x < 0 ? '-' : '';
+      if (!Number.isFinite(a) || a > 1e7) continue;
+      const den = p.den || 64;
+      if (mode === 'frac') { // inches to the nearest 1/den
+        if (p.frac && u.id === 'in') continue;
+        const fr = fraction(a, den), err = fr.value - a;
+        if (!fr.value) continue;
+        const exact = Math.abs(err) < 5e-7;
+        if (exact && !fr.num) continue; // same as the decimal row
+        const text = sg + (fr.num ? (fr.whole ? fr.whole + ' ' : '') + fr.num + '/' + fr.den : String(fr.whole));
+        const off = fmt(u.from(BY.in.to(Math.abs(err))), 2) + ' ' + u.label + (err > 0 ? ' over' : ' under');
+        const note = exact ? 'exact' : 'nearest 1/' + den + ', ' + off;
+        out.push({ show: text, unit: 'in', copy: text, copyUnit: text + ' in', note, short: exact ? 'exact' : off });
+      } else if (mode === 'ftin') { // feet and inches to the nearest 1/16
+        const inches = a * 12; // x is in feet here
+        if (inches < 12 || p.ftin) continue;
+        let ft = Math.floor(inches / 12);
+        const fd = Math.min(den, 16), rem = inches - ft * 12, fr = fraction(rem, fd);
+        let wh = fr.whole;
+        if (wh === 12) { ft += 1; wh = 0; }
+        const tail = wh + (fr.num ? ' ' + fr.num + '/' + fr.den : '');
+        const plain = sg + ft + "' " + tail + '"';
+        out.push({ show: sg + ft + '′ ' + tail + '″', unit: '', copy: plain, copyUnit: plain, note: Math.abs(fr.value - rem) < 1e-9 ? '' : 'to the nearest 1/' + fd + ' in' });
+      } else if (mode === 'lboz') { // pounds and ounces
+        if (a < 1) continue;
+        let lb = Math.floor(a), oz = Math.round((a - lb) * 160) / 10;
+        if (oz >= 16) { lb += 1; oz = 0; }
+        const text = sg + lb + ' lb ' + oz + ' oz';
+        out.push({ show: text, unit: '', copy: text, copyUnit: text, note: '' });
+      }
+    }
+    return out;
+  }
+
+  // ── reading what was typed ──
+  const norm = t => t.toLowerCase().replace(/\s+per\s+/g, '/').replace(/[µμ]/g, 'u').replace(/²/g, '2').replace(/³/g, '3')
+    .replace(/°\s*(?=[a-z])/g, '').replace(/°/g, 'deg').replace(/[\s.\-·*^_]/g, '');
+  function resolve(text) {
+    const key = norm(text || '');
+    if (!key) return { exact: null, cands: [] };
+    const exact = ALIAS.get(key) || null;
+    const cands = UNITS.filter(u => u !== exact && u.keys.some(k => k.startsWith(key)));
+    // best guess first: the unit's own short name starts with what was typed, then units from the main table
+    const rank = u => (u.keys[0].startsWith(key) ? 2 : 0) + (COMMON.has(u.id) ? 1 : 0);
+    cands.sort((a, b) => rank(b) - rank(a));
+    return { exact, cands };
+  }
+  function splitTarget(text) { // "kg lb", "ft in m": a unit, then the unit wanted
+    const i = text.search(/\s/);
+    if (i < 0) return null;
+    const left = text.slice(0, i), right = text.slice(i).trim().replace(/^(?:in|to|as)\s+(?=\S)/i, '');
+    if (!resolve(left).exact) return null;
+    const r = resolve(right);
+    return r.exact || r.cands.length ? { left, right } : null;
+  }
+  const Q = String.raw`(?:\d+[ -]+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+\.?\d*|\.\d+)`; // 1 3/8 | 3/8 | 25.4
+  const RE_FTIN = new RegExp(String.raw`^(\d+\.?\d*)\s*('|ft|feet|foot)(\s*)(${Q})\s*("|in|inch|inches)?$`, 'i');
+  const RE_NUM = new RegExp(String.raw`^(${Q})\s*(.*)$`);
+  const tidy = s => s.trim().replace(/\s*\/\s*/, '/').replace(/[ -]+/, ' ');
+  function qty(s) {
+    let m;
+    if ((m = s.match(/^(\d+)[ -]+(\d+)\s*\/\s*(\d+)$/))) return +m[3] ? { v: +m[1] + m[2] / m[3], frac: true } : null;
+    if ((m = s.match(/^(\d+)\s*\/\s*(\d+)$/))) return +m[2] ? { v: m[1] / m[2], frac: true } : null;
+    const v = parseFloat(s);
+    return Number.isFinite(v) ? { v, frac: false } : null;
+  }
+  function done(p, targetText) {
+    if (targetText && p.unit) {
+      const r = resolve(targetText);
+      const t = r.exact && r.exact.cat === p.unit.cat ? r.exact : r.cands.find(c => c.cat === p.unit.cat);
+      if (t && t !== p.unit) p.target = t;
+    }
+    p.q = p.ftin || !p.unit ? p.shown : p.shown + ' ' + p.unit.label;
+    return p;
+  }
+  // how: empty | pinned (no unit typed) | implied (fraction, so inches) | typed | guess (prefix match) | unknown | badnum
+  function parse(raw, pinnedId) {
+    const pinned = BY[pinnedId] || BY.mm;
+    const p = { value: 1, unit: pinned, how: 'empty', unitText: '', cands: [], numText: '', frac: false, ftin: false, target: null, shown: '1', q: '' };
+    let s = String(raw).replace(/[′’‘`´]/g, "'").replace(/[″”“]/g, '"').replace(/''/g, '"').replace(/[−–—]/g, '-').trim();
+    if (!s) return done(p);
+    let targetText = '';
+    let m = s.match(/^(.+?)(?:\s+to(?:\s+|$)|\s*-?>\s*|\s*=\s*)(.*)$/i);
+    if (m) { s = m[1].trim(); targetText = m[2].trim(); }
+    let neg = false;
+    if (/^[-+]/.test(s)) { neg = s[0] === '-'; s = s.slice(1).trim(); }
+    s = s.replace(/(\d),(?=\d{3}(?!\d))/g, '$1').replace(/(\d),(?=\d)/g, '$1.');
+    const sg = neg ? '-' : '', sign = neg ? -1 : 1;
+
+    m = s.match(RE_FTIN); // 5' 7 1/2"  or  5ft 7in  (but 5ft2 is square feet)
+    if (m && (m[2] === "'" || m[3] || m[5])) {
+      const q = qty(m[4].trim());
+      if (q) {
+        p.value = sign * (parseFloat(m[1]) * 12 + q.v);
+        p.unit = BY.in; p.how = 'typed'; p.ftin = true; p.frac = q.frac;
+        p.numText = fmt(p.value, 10);
+        p.shown = sg + m[1] + '′ ' + tidy(m[4]) + '″';
+        return done(p, targetText);
+      }
+    }
+
+    let unitText;
+    m = s.match(RE_NUM);
+    if (m) {
+      const q = qty(m[1].trim());
+      if (!q) { p.how = 'badnum'; p.unit = null; p.value = NaN; p.unitText = m[1].trim(); p.shown = '?'; return done(p); }
+      p.value = sign * q.v; p.frac = q.frac;
+      p.numText = p.shown = q.frac ? sg + tidy(m[1]) : fmt(p.value, 12);
+      unitText = m[2].trim();
+      if (/^[\d\/.]/.test(unitText)) unitText = ''; // mid-fraction: "1 3", "3/"
+      const half = unitText.match(/^(?:(')\s*|(ft|feet|foot)\s+)[\d\s\/.-]+$/i); // mid feet-and-inches: 5' 7 1/
+      if (half) unitText = half[1] || half[2];
+    } else { unitText = s; p.value = sign; p.shown = sg + '1'; }
+
+    if (!unitText) {
+      if (p.frac) { p.unit = BY.in; p.how = 'implied'; } else { p.unit = pinned; p.how = 'pinned'; }
+      return done(p, targetText);
+    }
+    let r = resolve(unitText);
+    if (!r.exact && !r.cands.length) {
+      const sp = splitTarget(unitText);
+      if (sp) { unitText = sp.left; targetText = sp.right; r = resolve(unitText); }
+    }
+    p.unitText = unitText;
+    if (r.exact) { p.unit = r.exact; p.how = 'typed'; p.cands = r.cands; }
+    else if (r.cands.length) { p.unit = r.cands[0]; p.how = 'guess'; p.cands = r.cands.slice(1); }
+    else { p.unit = null; p.how = 'unknown'; }
+    return done(p, targetText);
+  }
+
+  return { parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes };
+})();
+</script>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const input = $('q'), ghost = $('ghost'), field = $('field'), answer = $('answer'), hero = $('hero'),
+    statusEl = $('status'), hintEl = $('hint'), alsoEl = $('also'), alsoHead = $('alsoHead'),
+    gridEl = $('grid'), gridHead = $('gridHead'), others = $('others'), band = document.querySelector('.band'), tape = $('tape');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+  let pinned = 'mm', sel = 0, lastUnit = null, cur = null, list = [], sayTimer = 0, charW = 0.6;
+  let den = 64;
+  try { const d = +localStorage.getItem('uc-den'); if ([16, 32, 64].includes(d)) den = d; } catch (e) { /* 1/64 */ }
+  let auto = false;      // the page (not the person) has the whole value selected
+  let pendingKey = '';   // the key that is bringing focus to the box
+  const startsNumber = k => /[\d.,+\-]/.test(k);
+  const NUM_HEAD = /^\s*[-+\u2212]?\s*(?:\d+[ -]+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|[\d.,]+)/;
+  const pairs = [];
+
+  // ── real-size ruler ──
+  // Browsers don't report the screen's physical size, so: guess it for iPhones from the screen model, otherwise calibrate against a card.
+  const CSS_MM = 96 / 25.4, CARD = 53.98;
+  // Some viewers (the Claude app's artifact view, for one) lay the page out wider than the screen and shrink it to fit.
+  // When the page is wider than the screen it must be shrunk, so scale the ruler up by the same amount.
+  function viewerShrink() {
+    const sw = window.innerWidth > window.innerHeight ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    const w = document.documentElement.clientWidth || window.innerWidth;
+    return w > sw + 2 ? w / sw : 1;
+  }
+  function guessPxPerMm() {
+    const base = phoneMm();
+    return base ? base * viewerShrink() : null;
+  }
+  function phoneMm() {
+    if (!/iPhone|iPod/.test(navigator.userAgent)) return null;
+    const w = Math.min(screen.width, screen.height), h = Math.max(screen.width, screen.height), d = window.devicePixelRatio;
+    if (d >= 3) {
+      if (w === 414 && h === 736) return 401 / (1080 / 414) / 25.4; // 6/7/8 Plus: rendered larger than the panel
+      const k = w + 'x' + h;
+      // 12 mini / 13 mini also report 375x812, drawn at 1125 px and shrunk onto a 1080 px, 476 ppi panel.
+      // X / XS / 11 Pro report the same size at 458 ppi, 8% coarser; the page can't tell them apart, so the status asks for a card check.
+      if (k === '375x812') return 476 / (1080 / 375) / 25.4;
+      const ppi = ['414x896', '428x926'].includes(k) ? 458 : 460; // X-era Max 458; newer 460
+      return ppi / 3 / 25.4;
+    }
+    if (d === 2) return 326 / 2 / 25.4;                             // SE, 8, XR, 11
+    return null;
+  }
+  let autoMm = guessPxPerMm();
+  let pxmm = autoMm || CSS_MM, calSource = autoMm ? 'auto' : 'none';
+  try { const v = parseFloat(localStorage.getItem('uc-pxmm')); if (v > 1 && v < 20) { pxmm = v; calSource = 'saved'; } } catch (e) { /* use the guess */ }
+  try { const saved = localStorage.getItem('uc-unit'); if (saved && UC.unit(saved)) pinned = saved; } catch (e) { /* no storage: start on mm */ }
+
+  function buildGrid() {
+    const col = ids => '<div class="col">' + ids.split(' ').map(id => {
+      const u = UC.unit(id);
+      return `<div class="pair" data-pair="${id}"><button type="button" class="src" data-unit="${id}" title="Switch to ${esc(u.name)}">${esc(u.label)}</button>` +
+        `<button type="button" class="val" data-copy="" data-copy-unit=""><span class="v"></span> <span class="u"></span></button></div>`;
+    }).join('') + '</div>';
+    gridEl.innerHTML = '<div class="cat head"><span></span><span>Metric to imperial</span><span>Imperial to metric</span></div>' +
+      UC.TABLE.map(([name, a, b]) => `<div class="cat"><div class="cat-name">${name}</div>${col(a)}${col(b)}</div>`).join('');
+    gridEl.querySelectorAll('.pair').forEach(el => pairs.push({ id: el.dataset.pair, el, val: el.querySelector('.val'), v: el.querySelector('.v'), u: el.querySelector('.u') }));
+  }
+  const unitbar = $('unitbar'), coarse = window.matchMedia('(pointer: coarse)').matches;
+  const phone = () => window.innerWidth < 760;
+  function buildBar() {
+    // lengths first, then metric/imperial pairs in order of everyday use
+    const groups = [['mm', 'cm', 'in', 'ft'], ['C', 'F'], ['km', 'mi'], ['kg', 'lb'], ['g', 'oz'], ['m', 'yd'], ['L', 'gal'],
+      ['mL', 'floz'], ['km/h', 'mph'], ['bar', 'psi'], ['Nm', 'ftlb'], ['m2', 'ft2']];
+    unitbar.innerHTML = groups.map(g => '<span class="ugroup">' + g.map(id =>
+      `<button type="button" data-pin="${id}" title="${esc(cap(UC.unit(id).name))}">${esc(UC.unit(id).label)}</button>`).join('') + '</span>').join('');
+  }
+  function setKeys(mode) { // number pad or full keyboard
+    input.setAttribute('inputmode', mode);
+    $('kb').textContent = mode === 'decimal' ? 'abc' : '123';
+  }
+  function pin(id) { // read the number as this unit, and leave only the number in the box
+    pinned = id;
+    try { localStorage.setItem('uc-unit', id); } catch (e) { /* fine without it */ }
+    input.value = cur && cur.numText && !cur.ftin ? cur.numText : (cur && cur.ftin ? cur.numText : '');
+    render(); input.focus();
+  }
+  function buildUnits() {
+    $('unitList').innerHTML = UC.catalog.map(([cat, us]) => `<p><b>${cat}</b> ` +
+      us.map(u => `<button type="button" data-unit="${u[0]}" title="${esc(cap(u[2]))}">${esc(u[1])}</button>`).join(' ') + '</p>').join('');
+  }
+
+  function render() {
+    const p = cur = UC.parse(input.value, pinned);
+    p.den = den;
+    if (p.unit && p.how !== 'pinned' && p.how !== 'empty' && p.unit.id !== pinned) {
+      pinned = p.unit.id;
+      try { localStorage.setItem('uc-unit', pinned); } catch (e) { /* fine without it */ }
+    }
+    list = p.unit ? UC.rows(p) : [];
+    const uid = p.unit ? p.unit.id : null;
+    if (uid !== lastUnit || sel >= list.length) sel = 0;
+    lastUnit = uid;
+
+    // the unit a bare number is being read as, shown right after what was typed
+    const bare = p.how === 'pinned' || p.how === 'implied' || p.how === 'empty';
+    ghost.innerHTML = bare ? `<i>${esc(input.value || '1')}</i><b> ${esc(p.unit.label)}</b>` : '';
+
+    const top = list[0];
+    hero.disabled = !top;
+    hero.innerHTML = top ? `<span class="v">${esc(top.show)}</span>${top.unit ? ` <span class="u">${esc(top.unit)}</span>` : ''}` : '<span class="v">?</span>';
+    hero.dataset.copy = top ? top.copy : '';
+    hero.dataset.copyUnit = top ? top.copyUnit : '';
+
+    $('quad').innerHTML = list.slice(0, 4).map(r =>
+      `<button type="button" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}"${r.note ? ` title="${esc(r.note)}"` : ''}>` +
+      `<span class="v">${esc(r.show)}</span>${r.unit ? ` <span class="u">${esc(r.unit)}</span>` : ''}` +
+      `${r.short ? `<span class="e">${esc(r.short)}</span>` : ''}</button>`).join('');
+    const chips = us => us.length ? ' Or ' + us.slice(0, 6).map(u => `<button type="button" class="chip" data-unit="${u.id}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join(' ') : '';
+    let st;
+    switch (p.how) {
+      case 'empty': st = `Showing 1 ${esc(p.unit.label)}. Type a number, with a unit or without.`; break;
+      case 'pinned': st = `Read as ${esc(p.unit.name)}, the last unit you used. Type a unit after the number to change it.`; break;
+      case 'implied': st = 'A fraction with no unit reads as inches.'; break;
+      case 'typed': st = p.ftin ? `Feet and inches: ${esc(UC.fmt(p.value))} in.` : esc(cap(p.unit.name)) + '.' + chips(p.cands); break;
+      case 'guess': st = `Read “${esc(p.unitText)}” as ${esc(p.unit.name)}.` + chips(p.cands); break;
+      case 'badnum': st = `Can’t read “${esc(p.unitText)}” as a number.`; break;
+      default: st = `No unit matches “${esc(p.unitText)}”. Try mm, in, ft, kg, lb, c, f, psi or nm.`;
+    }
+    statusEl.innerHTML = st;
+    statusEl.classList.toggle('bad', p.how === 'unknown' || p.how === 'badnum');
+    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum' || p.how === 'guess');
+    unitbar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.pin === uid));
+
+    alsoHead.textContent = p.unit ? `${p.q} is also` : 'Nothing to convert yet';
+    alsoEl.innerHTML = list.slice(1).map((r, i) =>
+      `<li><button type="button" class="row" data-i="${i + 1}" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}">` +
+      `<span class="v">${esc(r.show)}</span>${r.unit ? `<span class="u">${esc(r.unit)}</span>` : ''}<span class="c">copy</span>` +
+      `${r.note ? `<span class="n">${esc(r.note)}</span>` : ''}</button></li>`).join('') ||
+      `<li class="none">${p.unit ? 'No other common units for this one.' : 'Fix the unit and the answers appear here.'}</li>`;
+
+    gridHead.textContent = `${p.ftin ? UC.fmt(p.value) : p.shown} read as other units`;
+    for (const c of pairs) {
+      const r = UC.rows({ value: p.value, unit: UC.unit(c.id), den })[0];
+      c.v.textContent = r.show; c.u.textContent = r.unit;
+      c.val.dataset.copy = r.copy; c.val.dataset.copyUnit = r.copyUnit;
+      c.el.classList.toggle('on', c.id === uid);
+    }
+    others.classList.toggle('quiet', p.how === 'typed' || p.how === 'guess');
+    document.querySelectorAll('[data-den]').forEach(b => b.classList.toggle('on', +b.dataset.den === den));
+    drawTape();
+    paintSel(); fit();
+  }
+
+  function hintText() {
+    const r = list[sel];
+    if (!r) return '';
+    return `Enter copies ${r.copy}.` + (r.copyUnit !== r.copy ? ` Shift+Enter copies ${r.copyUnit}.` : '');
+  }
+  function paintSel() {
+    hero.classList.toggle('sel', sel === 0 && list.length > 0);
+    alsoEl.querySelectorAll('.row').forEach(b => b.classList.toggle('sel', +b.dataset.i === sel));
+    if (!sayTimer) hintEl.textContent = hintText();
+  }
+  function say(msg) {
+    hintEl.textContent = msg; $('live').textContent = msg; hintEl.classList.add('need');
+    clearTimeout(sayTimer);
+    sayTimer = setTimeout(() => { sayTimer = 0; hintEl.textContent = hintText(); hintEl.classList.remove('need'); }, 1600);
+  }
+
+  // keep both sides of the equation as large as their text allows
+  function measure() { const w = $('probe').getBoundingClientRect().width; if (w) charW = w / 2000; }
+  function fit() {
+    const max = window.innerWidth < 760 ? 32 : 60;
+    const size = (box, chars, pad) => Math.max(20, Math.min(max, Math.floor((box.clientWidth - pad) / (Math.max(chars, 5) * charW))));
+    field.style.fontSize = size(field, (ghost.textContent.length || input.value.length) + 0.5, 26) + 'px';
+    answer.style.fontSize = size(answer, hero.textContent.length + 0.5, 32) + 'px';
+  }
+
+  // tape edges: millimetres along the top, sixteenths of an inch along the bottom, drawn to one scale
+  function drawTape() {
+    const w = tape.clientWidth, h = tape.clientHeight, dpr = window.devicePixelRatio || 1;
+    tape.width = Math.round(w * dpr); tape.height = Math.round(h * dpr);
+    const g = tape.getContext('2d');
+    g.scale(dpr, dpr);
+    g.fillStyle = getComputedStyle(band).color;
+    g.font = '9px "B612 Mono", ui-monospace, Menlo, Consolas, monospace';
+    g.textBaseline = 'top';
+    const snap = x => Math.round(x * dpr) / dpr, mm = pxmm, sixteenth = pxmm * 25.4 / 16;
+    // the typed length, marked from the zero edge on both scales
+    if (cur && cur.unit && cur.unit.cat === 'Length' && Number.isFinite(cur.value) && cur.value) {
+      const len = Math.abs(UC.unit('mm').from(cur.unit.to(cur.value))) * mm, x = len;
+      if (len <= w) {
+      g.save();
+      g.fillStyle = getComputedStyle(band).getPropertyValue('--tape-mark').trim() || '#b3261a';
+      g.globalAlpha = .22; g.fillRect(0, 0, x, 15); g.fillRect(0, h - 17, x, 17);
+      g.globalAlpha = .95; g.fillRect(snap(x) - 1, 0, 2, 17); g.fillRect(snap(x) - 1, h - 19, 2, 19);
+      g.restore();
+      } // longer than the screen: no mark
+    }
+    for (let i = 0; i * mm <= w; i++) {
+      const x = snap(i * mm);
+      g.globalAlpha = .42; g.fillRect(x, 0, 1, i % 10 === 0 ? 11 : i % 5 === 0 ? 7 : 4);
+      if (i % 10 === 0) { g.globalAlpha = .6; g.fillText(i ? String(i / 10) : 'cm', x + 3, 6); }
+    }
+    for (let j = 0; j * sixteenth <= w; j++) {
+      const x = j * sixteenth, len = j % 16 === 0 ? 13 : j % 8 === 0 ? 9 : j % 4 === 0 ? 7 : j % 2 === 0 ? 5 : 3;
+      g.globalAlpha = .42; g.fillRect(x, h - len, 1, len);
+      if (j % 16 === 0) { g.globalAlpha = .6; g.fillText(j ? String(j / 16) : 'in', x + 3, h - 16); }
+    }
+  }
+
+  const cal = $('cal'), calRange = $('calRange'), calbar = $('calbar');
+  function calShow() {
+    calRange.value = pxmm; calbar.style.width = (CARD * pxmm) + 'px';
+    $('calStatus').textContent = calSource === 'saved' ? 'Set by you on this device.'
+      : calSource === 'auto' ? (screen.width === 375 && screen.height === 812
+        ? 'Set for an iPhone 12 or 13 mini. On an X, XS or 11 Pro, set it with a card.'
+        : 'Set automatically for this iPhone. Check it against a card.')
+      : 'Not real size on this device yet. Tap to set it.';
+  }
+  function calSet(v, save = true) {
+    pxmm = Math.min(9, Math.max(2.5, v)); calSource = save ? 'saved' : calSource;
+    if (save) try { localStorage.setItem('uc-pxmm', String(pxmm)); } catch (e) { /* lasts until reload */ }
+    calShow(); drawTape();
+  }
+  $('calOpen').addEventListener('click', e => { e.stopPropagation(); input.blur(); cal.hidden = false; calShow(); window.scrollTo({ top: 0 }); });
+  $('calDone').addEventListener('click', () => { cal.hidden = true; input.focus(); });
+  $('calMinus').addEventListener('click', () => calSet(pxmm * 0.997));
+  $('calPlus').addEventListener('click', () => calSet(pxmm * 1.003));
+  calRange.addEventListener('input', () => calSet(parseFloat(calRange.value)));
+  $('calReset').addEventListener('click', () => {
+    try { localStorage.removeItem('uc-pxmm'); } catch (e) { /* nothing saved */ }
+    pxmm = autoMm || CSS_MM; calSource = autoMm ? 'auto' : 'none'; calShow(); drawTape();
+  });
+
+  // extra keys for the number pad: act on press and keep focus in the box, so the keyboard stays open
+  function padKey(k) {
+    if (k === 'neg') {
+      input.value = /^\s*-/.test(input.value) ? input.value.replace(/^\s*-\s*/, '') : '-' + input.value;
+    } else {
+      let a = input.selectionStart ?? input.value.length, z = input.selectionEnd ?? a;
+      if (auto || document.activeElement !== input) { a = z = input.value.length; } // after a copy, carry on from the end
+      input.setRangeText(k, a, z, 'end');
+    }
+    auto = false; render();
+    if (document.activeElement !== input) { pendingKey = ' '; input.focus(); }
+    const n = input.value.length; if (k === 'neg') input.setSelectionRange(n, n);
+  }
+  let touchedKey = 0;
+  $('padkeys').addEventListener('touchstart', e => {
+    const b = e.target.closest('[data-key], #neg'); if (!b) return;
+    e.preventDefault(); touchedKey = Date.now(); padKey(b.id === 'neg' ? 'neg' : b.dataset.key);
+  }, { passive: false });
+  $('padkeys').addEventListener('mousedown', e => { if (e.target.closest('[data-key], #neg')) e.preventDefault(); });
+  $('padkeys').addEventListener('click', e => { if (Date.now() - touchedKey < 800 && e.target.closest('[data-key], #neg')) e.stopPropagation(); }, true);
+
+  function legacyCopy(text) {
+    const t = document.createElement('textarea');
+    t.value = text; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;left:-9999px';
+    document.body.appendChild(t); t.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    t.remove();
+    return ok;
+  }
+  async function copy(text, el) {
+    if (!text) return;
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { ok = legacyCopy(text); }
+    say(ok ? `Copied ${text}` : 'This view blocked the copy. Click the value to try again.');
+    if (ok && el) {
+      el.classList.add('copied');
+      const c = el.querySelector('.c'); if (c) c.textContent = 'copied';
+      setTimeout(() => { el.classList.remove('copied'); if (c) c.textContent = 'copy'; }, 900);
+    }
+    // on a phone, a copy made further down the page stays there instead of jumping back to the keyboard
+    if (!(coarse && window.scrollY > band.offsetHeight)) { input.focus(); selectAll(); }
+  }
+  function copySel(withUnit) {
+    const r = list[sel];
+    if (!r) return;
+    copy(withUnit ? r.copyUnit : r.copy, sel === 0 ? hero : alsoEl.querySelector(`.row[data-i="${sel}"]`));
+  }
+  function setUnit(id) {
+    const u = UC.unit(id);
+    if (!u) return;
+    input.value = (cur && cur.numText ? cur.numText + ' ' : '') + u.label;
+    render(); input.focus();
+  }
+
+  input.addEventListener('input', render);
+  // Coming back to the box selects everything, so a new number replaces the old value.
+  // The first key onto that selection decides what it replaces: a digit starts over,
+  // a unit swaps only the unit ("12 cm", copy, "mm" gives 12mm), a space or > carries on at the end.
+  function selectAll() { input.select(); auto = true; }
+  function aim(key) {
+    const v = input.value, n = v.length;
+    if (!v || startsNumber(key)) { input.select(); return; }
+    if (key === ' ' || key === '>' || key === '=') { input.setSelectionRange(n, n); return; }
+    const m = cur && !cur.ftin ? v.match(NUM_HEAD) : null;
+    if (m) input.setSelectionRange(m[0].length, n); else input.select();
+  }
+  input.addEventListener('focus', () => { if (pendingKey) { aim(pendingKey); pendingKey = ''; auto = false; } else selectAll(); });
+  input.addEventListener('mousedown', e => { if (document.activeElement !== input) { e.preventDefault(); input.focus(); } else auto = false; });
+  input.addEventListener('keydown', e => {
+    if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) return;
+    const typed = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+    if (auto && typed && input.selectionStart === 0 && input.selectionEnd === input.value.length) aim(e.key);
+    auto = false;
+  });
+  window.addEventListener('focus', () => { if (document.activeElement === input) selectAll(); else input.focus(); });
+  window.addEventListener('resize', () => {
+    fit();
+    autoMm = guessPxPerMm();
+    if (calSource === 'auto') { pxmm = autoMm; drawTape(); }
+  });
+
+  document.addEventListener('click', e => {
+    const c = e.target.closest('[data-copy]');
+    if (c) { copy(e.shiftKey ? c.dataset.copyUnit : c.dataset.copy, c); return; }
+    const dn = e.target.closest('[data-den]');
+    if (dn) { den = +dn.dataset.den; try { localStorage.setItem('uc-den', String(den)); } catch (er) { /* this visit only */ } render(); return; }
+    const pn = e.target.closest('[data-pin]');
+    if (pn) { pin(pn.dataset.pin); return; }
+    if (e.target.closest('#neg')) { padKey('neg'); return; }
+    const pk = e.target.closest('[data-key]');
+    if (pk) { padKey(pk.dataset.key); return; }
+    if (e.target.closest('#kb')) { setKeys(input.getAttribute('inputmode') === 'decimal' ? 'text' : 'decimal'); pendingKey = ' '; input.blur(); input.focus(); return; }
+    const u = e.target.closest('[data-unit]');
+    if (u) { if (phone()) { pin(u.dataset.unit); window.scrollTo({ top: 0 }); } else setUnit(u.dataset.unit); return; }
+    const t = e.target.closest('[data-try]');
+    if (t) { input.value = t.dataset.try; render(); input.focus(); window.scrollTo({ top: 0 }); }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!cal.hidden) { if (e.key === 'Escape') cal.hidden = true; return; }
+    const onButton = e.target instanceof Element && e.target.closest('button');
+    if (e.key === 'Escape') { e.preventDefault(); input.value = ''; render(); input.focus(); return; }
+    if (e.key === 'Enter') { if (onButton) return; e.preventDefault(); copySel(e.shiftKey); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (list.length < 2 || onButton) return;
+      e.preventDefault();
+      sel = (sel + (e.key === 'ArrowDown' ? 1 : -1) + list.length) % list.length;
+      paintSel();
+      return;
+    }
+    // typing anywhere lands in the box
+    if (e.target !== input && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !(onButton && e.key === ' ')) {
+      pendingKey = e.key;
+      input.focus();
+    }
+  });
+
+  function start(saved) {
+    buildGrid(); buildUnits(); buildBar();
+    setKeys(coarse ? 'decimal' : 'text');
+    if (saved && typeof saved.raw === 'string') input.value = saved.raw;
+    measure(); render(); drawTape(); calShow();
+    if ('ResizeObserver' in window) new ResizeObserver(drawTape).observe(band);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); fit(); drawTape(); });
+    input.focus();
+  }
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { /* works online without it */ });
+  const hot = window.claude && window.claude.hot;
+  if (hot && hot.snapshot) hot.snapshot(() => ({ raw: input.value }));
+  if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
