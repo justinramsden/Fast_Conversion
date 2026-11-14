@@ -501,6 +501,8 @@ const UC = (() => {
   function rows(p) {
     const u = p.unit, v = p.value, out = [];
     let list = u.targets;
+    // a typed fraction of an inch: lead with the same length as decimal inches
+    if (p.frac && u.id === 'in' && !p.ftin) list = ['in', 'mm', 'cm', 'ft', 'ft:ftin', 'thou'];
     if (p.target) list = [p.target.id, ...list.filter(t => t !== p.target.id)];
     for (const t of list) {
       const [tid, mode] = t.split(':');
