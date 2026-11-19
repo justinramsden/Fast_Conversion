@@ -8,3 +8,4 @@ Open it on a phone and use **Add to Home Screen** (iPhone: Share menu; Android: 
 - °C / °F, km / mi, kg / lb and the rest of the everyday units
 - Tap any answer to copy it
 - Real-size ruler along the edges, with the typed length marked
+- Customize it with any AI chat: tap **Copy AI instructions**, ask for what you want, then tap **Paste AI answer**. The guide the AI follows is [CUSTOMIZE.md](CUSTOMIZE.md).

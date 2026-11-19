@@ -72,6 +72,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
   border-bottom: 3px solid color-mix(in srgb, var(--tape-ink) 40%, transparent);
   outline: none; appearance: none;
 }
+.field input[hidden] { display: none; }
 .field input:focus { background: rgba(255, 255, 255, .46); border-bottom-color: var(--tape-ink); }
 .field input::placeholder { color: color-mix(in srgb, var(--tape-ink) 42%, transparent); opacity: 1; }
 .field input::selection { background: var(--tape-ink); color: var(--tape); }
@@ -113,6 +114,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .quad .u { font: 600 15px/1.2 var(--font-ui); }
 .quad .e { display: block; font: 500 12px/1.2 var(--font-ui); opacity: .72; }
 .padkeys { grid-area: keys; gap: 5px; }
+.padkeys:empty { display: none !important; }
 .padkeys button {
   flex: 1 1 0; min-width: 0; height: 36px; padding: 0 4px; font: 600 16px/1 var(--font-ui); color: var(--tape-ink);
   background: rgba(255, 255, 255, .5); border: 1.5px solid var(--tape-ink); border-radius: 6px; cursor: pointer;
@@ -190,6 +192,27 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
 .calrow button { min-width: 52px; height: 48px; padding: 0 16px; font: 600 18px/1 var(--font-ui); background: none; border: 1.5px solid var(--ink); border-radius: 8px; cursor: pointer; }
 .calrow .done { margin-left: auto; background: var(--ink); color: var(--paper); }
 .calfoot { max-width: 1120px; margin: 0 auto; padding: 0 24px calc(32px + env(safe-area-inset-bottom, 0px)); font-size: 15px; color: var(--mute); }
+.cust { display: grid; gap: 12px; max-width: 760px; padding: 24px 0 20px; border-top: 1px solid var(--rule); }
+.cust h2 { font-size: 17px; color: var(--ink); }
+.cust p { margin: 0; }
+.cust-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.cust-steps li { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+.act {
+  min-height: 48px; padding: 8px 16px; text-align: left; font: 600 17px/1.2 var(--font-ui); cursor: pointer;
+  color: var(--paper); background: var(--ink); border: 0; border-radius: 8px;
+}
+.act:hover { background: color-mix(in srgb, var(--ink) 85%, var(--mark)); }
+.set-msg { min-height: 1.4em; color: var(--ink); font-weight: 500; }
+.set-msg.bad { color: var(--mark); }
+.set-msg ul { margin: 6px 0 0; padding-left: 20px; font-weight: 400; }
+.set-label { font-size: 14px; }
+#setText {
+  width: 100%; min-height: 12em; padding: 10px 12px; resize: vertical;
+  font: 400 16px/1.45 var(--font-num); color: var(--ink); background: var(--wash);
+  border: 1px solid var(--rule); border-radius: 6px; white-space: pre; overflow-x: auto;
+}
+.cust-more { display: flex; flex-wrap: wrap; gap: 8px; }
+.cust-more .try { min-height: 36px; display: inline-flex; align-items: center; text-decoration: none; }
 .calnote + .calnote { border-top: 0; padding-top: 12px; }
 .den { min-width: 52px; min-height: 36px; font-size: 15px; }
 .den.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -248,6 +271,8 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .ref-wrap { margin-top: 0; border-top: 0; }
   .ref { padding-top: 16px; padding-bottom: 24px; }
   .calfoot { padding-left: 16px; padding-right: 16px; }
+  .cust-steps li { grid-template-columns: minmax(0, 1fr); }
+  .act { width: 100%; }
   .units p { margin-bottom: 10px; max-width: none; line-height: 2.3; }
   .units b { display: block; line-height: 1.4; }
   .units button { padding: 7px 12px; margin: 0 4px 0 0; font-size: 17px; color: var(--ink); text-decoration: none; border: 1px solid var(--rule); border-radius: 999px; }
@@ -264,6 +289,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .sub.need { display: block; padding-left: 8px; }
   .padkeys, .unitbar { display: flex; }
   .padkeys button[data-key="'"], .padkeys button[data-key='"'] { font: 700 22px/1 var(--font-num); }
+  .padkeys button[data-key=" "] { font-size: 14px; padding: 0 1px; }
   .rows { margin-top: 0; border-top: 0; }
   .row { padding: 9px 12px 9px 16px; }
   .row .c { opacity: 1; }
@@ -289,17 +315,11 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
     <div class="eq">
       <div class="field" id="field">
         <label class="vh" for="q">Value to convert, with or without a unit</label>
-        <input id="q" type="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" autofocus>
+        <input id="q" class="qin" type="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" autofocus>
+        <input id="qa" class="qin" type="text" inputmode="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Value to convert, with or without a unit" hidden>
         <div class="ghost" id="ghost" aria-hidden="true"></div>
       </div>
-      <div class="padkeys" id="padkeys" role="group" aria-label="Extra keys">
-        <button type="button" data-key="/" aria-label="Slash">/</button>
-        <button type="button" data-key=" " aria-label="Space">space</button>
-        <button type="button" data-key="'" aria-label="Feet">&prime;</button>
-        <button type="button" data-key='"' aria-label="Inches">&Prime;</button>
-        <button type="button" id="neg" title="Make the number negative or positive" aria-label="Plus or minus">&plusmn;</button>
-        <button type="button" id="kb" title="Switch between the number pad and the full keyboard">abc</button>
-      </div>
+      <div class="padkeys" id="padkeys" role="group" aria-label="Extra keys"></div>
       <div class="unitbar" id="unitbar" role="group" aria-label="Read the number as"></div>
       <div class="equals" aria-hidden="true">=</div>
       <div class="answer" id="answer"><button type="button" class="hero" id="hero" title="Click to copy"></button></div>
@@ -353,6 +373,18 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   </section>
 </footer>
 <div class="calfoot">
+  <section class="cust" id="customize" aria-labelledby="custHead">
+    <h2 id="custHead">Customize with AI</h2>
+    <p>Any AI chat (ChatGPT, Claude, Gemini) can set this app up for you: the unit buttons, the extra keys, which answers show first, even units of your own.</p>
+    <ol class="cust-steps">
+      <li><button type="button" class="act" id="aiCopy">1&ensp;Copy AI instructions</button><span>Paste them into any AI chat, then say what you want changed.</span></li>
+      <li><button type="button" class="act" id="aiPaste">2&ensp;Paste AI answer</button><span>Copy the AI’s reply, come back and tap here. It applies at once.</span></li>
+    </ol>
+    <p class="set-msg" id="setMsg" aria-live="polite"></p>
+    <label class="set-label" for="setText">Your settings. Edit them here, or paste over them and they apply straight away.</label>
+    <textarea id="setText" rows="8" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"></textarea>
+    <p class="cust-more"><button type="button" class="try" id="setApply">Apply edits</button><button type="button" class="try" id="setCopy">Copy settings</button><button type="button" class="try" id="setReset">Reset to defaults</button><a class="try" href="https://github.com/justinramsden/Fast_Conversion/blob/main/CUSTOMIZE.md">Guide for AI</a></p>
+  </section>
   <p class="calnote" role="group" aria-label="Fraction precision"><span>Fractions to the nearest</span>
     <button type="button" class="try den" data-den="16">1/16</button><button type="button" class="try den" data-den="32">1/32</button><button type="button" class="try den" data-den="64">1/64</button></p>
   <p class="calnote"><button type="button" class="try" id="calOpen">Ruler size</button> <span id="calStatus"></span></p>
@@ -523,15 +555,17 @@ const UC = (() => {
 
   // ── every answer for one reading of the number ──
   function rows(p) {
-    const u = p.unit, v = p.value, out = [];
+    const u = p.unit, v = p.value, out = [], sig = p.sig || 6;
     let list = u.targets;
     // a typed fraction of an inch: lead with the same length as decimal inches
-    if (p.frac && u.id === 'in' && !p.ftin) list = ['in', 'mm', 'cm', 'ft', 'ft:ftin', 'thou'];
+    if (p.frac && u.id === 'in' && !p.ftin) list = fracList;
     if (p.target) list = [p.target.id, ...list.filter(t => t !== p.target.id)];
     for (const t of list) {
       const [tid, mode] = t.split(':');
-      const tu = BY[tid], x = tu.from(u.to(v));
-      if (!mode) { const s = fmt(x); out.push({ show: group(s), unit: tu.label, copy: s, copyUnit: s + ' ' + tu.label, note: '' }); continue; }
+      const tu = BY[tid];
+      if (!tu) continue;
+      const x = tu.from(u.to(v));
+      if (!mode) { const s = fmt(x, sig); out.push({ show: group(s), unit: tu.label, copy: s, copyUnit: s + ' ' + tu.label, note: '' }); continue; }
       const a = Math.abs(x), sg = x < 0 ? '-' : '';
       if (!Number.isFinite(a) || a > 1e7) continue;
       const den = p.den || 64;
@@ -662,22 +696,267 @@ const UC = (() => {
     return done(p, targetText);
   }
 
-  return { parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes };
+
+  // ── your own units and answer lists, set from the settings ──
+  for (const u of UNITS) u.base = u.targets.slice();
+  const FRAC_IN = ['in', 'mm', 'cm', 'ft', 'ft:ftin', 'thou'];
+  let fracList = FRAC_IN.slice();
+  function dropCustom() {
+    for (let i = UNITS.length - 1; i >= 0; i--) {
+      const u = UNITS[i];
+      if (!u.custom) continue;
+      UNITS.splice(i, 1); delete BY[u.id];
+      for (const k of u.keys) if (ALIAS.get(k) === u) ALIAS.delete(k);
+    }
+  }
+  function addUnit(id, n, of) {
+    const b = BY[of];
+    const u = {
+      id, label: id, name: `${id} (${fmt(n, 10)} ${b.label})`, cat: b.cat, custom: true, keys: [norm(id)],
+      to: v => b.to(v * n), from: x => b.from(x) / n,
+    };
+    u.base = [of, ...b.base];
+    u.targets = u.base.slice();
+    UNITS.push(u); BY[id] = u; ALIAS.set(norm(id), u);
+  }
+  const usable = list => list.filter(t => BY[t.split(':')[0]]);
+  function configure(s) {
+    dropCustom();
+    for (const [id, d] of Object.entries(s.units || {})) if (BY[d.of] && !BY[d.of].custom && !BY[id]) addUnit(id, d.n, d.of);
+    for (const u of UNITS) u.targets = usable((s.answers && s.answers[u.id]) || u.base);
+    fracList = usable((s.answers && s.answers['typed-fraction']) || FRAC_IN);
+  }
+
+  // ── settings: one short block of plain text that people and AI chat bots can edit ──
+  const APP_URL = 'https://justinramsden.github.io/Fast_Conversion/';
+  const GUIDE_URL = 'https://github.com/justinramsden/Fast_Conversion/blob/main/CUSTOMIZE.md';
+  const S_HEAD = '# Fast Conversion settings v1';
+  const S_DEFAULTS = {
+    start_unit: 'mm', remember_unit: 'on',
+    unit_bar: [['mm', 'cm', 'in', 'ft'], ['C', 'F'], ['km', 'mi'], ['kg', 'lb'], ['g', 'oz'], ['m', 'yd'], ['L', 'gal'],
+      ['mL', 'floz'], ['km/h', 'mph'], ['bar', 'psi'], ['Nm', 'ftlb'], ['m2', 'ft2']],
+    keys: ['/', 'space', "'", '"', '±', 'C', 'abc'],
+    fraction: 64, digits: 6, ruler: 'on', ruler_mark: 'on', theme: 'auto',
+    units: {}, answers: {},
+  };
+  const KEY_TOKENS = {
+    '/': '/', slash: '/', space: 'space', spc: 'space', '␣': 'space', "'": "'", '′': "'", feet: "'", '"': '"', '″': '"', inches: '"',
+    '±': '±', '+/-': '±', '+-': '±', neg: '±', minus: '±', '-': '±', c: 'C', clear: 'C', clr: 'C', abc: 'abc', keyboard: 'abc',
+  };
+  const MODES = { 'in-frac': 'in:frac', 'in:frac': 'in:frac', 'ft-in': 'ft:ftin', 'ft:ftin': 'ft:ftin', 'lb-oz': 'lb:lboz', 'lb:lboz': 'lb:lboz' };
+  const MODE_NAME = { 'in:frac': 'in-frac', 'ft:ftin': 'ft-in', 'lb:lboz': 'lb-oz' };
+  const ONOFF = { on: 'on', yes: 'on', true: 'on', 1: 'on', off: 'off', no: 'off', false: 'off', 0: 'off' };
+  const SIMPLE = ['start_unit', 'remember_unit', 'unit_bar', 'keys', 'fraction', 'digits', 'ruler', 'ruler_mark', 'theme'];
+  const sClone = s => JSON.parse(JSON.stringify(s));
+  const tokens = v => v.split(/[\s,;]+/).map(t => t.replace(/^`+|`+$/g, '')).filter(Boolean);
+  const tName = t => MODE_NAME[t] || t;
+
+  // Reads settings out of whatever was pasted: a bare block, a code block inside an AI reply, or a two-column table.
+  // A block that carries the "# Fast Conversion settings" header is complete, so lines it leaves out go back to their defaults.
+  // Anything else only changes the lines it names.
+  function sParse(text, current) {
+    const full = /fast\s*conversion\s*settings/i.test(text);
+    const s = sClone(full || !current ? S_DEFAULTS : current), errors = [], entries = [];
+    for (const raw of String(text).split(/\r?\n/)) {
+      let line = raw.trim(), name, value, strict = false;
+      if (!line || line[0] === '#' || /^(```|~~~)/.test(line)) continue;
+      if (line[0] === '|') {
+        const cells = line.split('|').slice(1, -1).map(c => c.trim().replace(/^`+|`+$/g, ''));
+        if (cells.length !== 2 || /^:?-+:?$/.test(cells[0])) continue;
+        [name, value] = cells;
+      } else {
+        line = line.replace(/^(?:[-*•]|\d+[.)])\s+/, '').replace(/^`+|`+$/g, '');
+        const m = line.match(/^([A-Za-z][\w.\-/ ]*?)\s*(=|:)\s*(.*)$/);
+        if (!m) continue;
+        [, name, , value] = m; strict = m[2] === '=';
+      }
+      value = value.replace(/\s+#\s.*$/, '').replace(/^`+|`+$/g, '').trim();
+      entries.push({ name: name.trim(), value, strict });
+    }
+    const kind = e => /^units?[.\s]/i.test(e.name) ? 0 : 1; // define new units before anything uses them
+    entries.sort((a, b) => kind(a) - kind(b));
+
+    const codeOf = t => {
+      if (!t) return null;
+      if (s.units[t]) return t;
+      if (BY[t] && !BY[t].custom) return t;
+      const r = resolve(t);
+      if (r.exact && (!r.exact.custom || s.units[r.exact.id])) return r.exact.id;
+      return Object.keys(s.units).find(id => id.toLowerCase() === t.toLowerCase()) || null;
+    };
+    const catOf = id => s.units[id] ? BY[s.units[id].of].cat : BY[id].cat;
+    let found = 0;
+
+    for (const { name, value, strict } of entries) {
+      const bad = msg => errors.push(`${name}: ${msg}`);
+      let m;
+      if ((m = name.match(/^units?[.\s]+(.+)$/i))) { // unit.sheet, not unit_bar
+        found++;
+        const id = m[1].trim();
+        if (/^(remove|delete|none|off)?$/i.test(value)) { if (s.units[id]) delete s.units[id]; else bad('no unit of yours by that name'); continue; }
+        if (!/^[A-Za-z][A-Za-z0-9_]{0,11}$/.test(id)) { bad('a unit code is up to 12 letters, digits or _, starting with a letter'); continue; }
+        const clash = BY[id] || ALIAS.get(norm(id));
+        if (clash && !clash.custom) { bad(`"${id}" is already a built-in unit`); continue; }
+        const mm = value.match(/^(\d*\.?\d+(?:e[-+]?\d+)?(?:\s*\/\s*\d*\.?\d+)?)\s*(.+)$/i);
+        if (!mm) { bad('write it as an amount and a built-in unit, like 2440 mm'); continue; }
+        const [a, b2] = mm[1].split('/'), n = b2 ? parseFloat(a) / parseFloat(b2) : parseFloat(a);
+        const of = codeOf(mm[2].trim());
+        if (!of || !BY[of] || BY[of].custom) { bad(`"${mm[2].trim()}" isn't a built-in unit code`); continue; }
+        if (BY[of].cat === 'Temperature') { bad('temperatures can’t be defined this way'); continue; }
+        if (!(n > 0) || !Number.isFinite(n)) { bad('the amount must be a positive number'); continue; }
+        s.units[id] = { n, of };
+        continue;
+      }
+      if ((m = name.match(/^answers?[.\s_]+(.+)$/i))) {
+        found++;
+        const key = m[1].trim();
+        const src = /^typed[-_\s]?fractions?$/i.test(key) ? 'typed-fraction' : codeOf(key);
+        if (!src) { bad(`"${key}" isn't a unit code`); continue; }
+        if (/^(default|reset)?$/i.test(value)) { delete s.answers[src]; continue; }
+        const cat = src === 'typed-fraction' ? 'Length' : catOf(src), out = [];
+        for (const t of tokens(value)) {
+          const id = MODES[t.toLowerCase()] || codeOf(t);
+          if (!id) { bad(`"${t}" isn't a unit code, so it was left out`); continue; }
+          if (catOf(id.split(':')[0]) !== cat) { bad(`"${t}" isn't a ${cat.toLowerCase()} unit, so it was left out`); continue; }
+          if (!out.includes(id)) out.push(id);
+        }
+        if (out.length) s.answers[src] = out; else bad('nothing usable in the list, so it was left as it was');
+        continue;
+      }
+      const key = name.toLowerCase().replace(/[\s-]+/g, '_');
+      if (SIMPLE.includes(key) || key === 'fractions' || key === 'default_unit') found++;
+      switch (key) {
+        case 'start_unit': case 'default_unit': { const c = codeOf(value); if (c) s.start_unit = c; else bad(`"${value}" isn't a unit code`); break; }
+        case 'remember_unit': case 'ruler': case 'ruler_mark': { const v = ONOFF[value.toLowerCase()]; if (v) s[key] = v; else bad('use on or off'); break; }
+        case 'theme': { const v = value.toLowerCase(); if (['auto', 'light', 'dark'].includes(v)) s.theme = v; else bad('use auto, light or dark'); break; }
+        case 'fraction': case 'fractions': { const d = +value.replace(/^1\s*\/\s*/, ''); if ([16, 32, 64].includes(d)) s.fraction = d; else bad('use 1/16, 1/32 or 1/64'); break; }
+        case 'digits': { const d = Number(value); if (Number.isInteger(d) && d >= 3 && d <= 10) s.digits = d; else bad('use a whole number from 3 to 10'); break; }
+        case 'unit_bar': {
+          const used = new Set();
+          const groups = value.split('|').map(g => tokens(g).map(t => {
+            const c = codeOf(t);
+            if (!c) { bad(`"${t}" isn't a unit code, so it was left out`); return null; }
+            if (used.has(c)) return null;
+            used.add(c); return c;
+          }).filter(Boolean)).filter(g => g.length);
+          if (groups.length) s.unit_bar = groups; else bad('no usable units, so it was left as it was');
+          break;
+        }
+        case 'keys': {
+          const out = [];
+          if (!/^none$/i.test(value)) for (const t of tokens(value)) {
+            const k = KEY_TOKENS[t.toLowerCase()] || KEY_TOKENS[t];
+            if (!k) bad(`"${t}" isn't one of the keys, so it was left out`);
+            else if (!out.includes(k)) out.push(k);
+          }
+          if (out.length > 8) { bad('only 8 keys fit, so the rest were left out'); out.length = 8; }
+          s.keys = out;
+          break;
+        }
+        default: if (strict) bad('this app has no setting by that name, so it was ignored');
+      }
+    }
+    if (!s.units[s.start_unit] && (!BY[s.start_unit] || BY[s.start_unit].custom)) { errors.push(`start_unit: "${s.start_unit}" no longer exists, so it went back to mm`); s.start_unit = 'mm'; }
+    return { s, errors, found };
+  }
+
+  function sText(s) {
+    const L = [S_HEAD, '# How to edit: ' + GUIDE_URL,
+      `start_unit = ${s.start_unit}`, `remember_unit = ${s.remember_unit}`,
+      `unit_bar = ${s.unit_bar.map(g => g.join(' ')).join(' | ')}`,
+      `keys = ${s.keys.length ? s.keys.join(' ') : 'none'}`,
+      `fraction = 1/${s.fraction}`, `digits = ${s.digits}`,
+      `ruler = ${s.ruler}`, `ruler_mark = ${s.ruler_mark}`, `theme = ${s.theme}`];
+    for (const [id, d] of Object.entries(s.units)) L.push(`unit.${id} = ${fmt(d.n, 10)} ${d.of}`);
+    for (const [id, list] of Object.entries(s.answers)) L.push(`answers.${id} = ${list.map(tName).join(', ')}`);
+    return L.join('\n');
+  }
+
+  // The instructions an AI chat bot needs, with the person's current settings filled in.
+  function sGuide(current) {
+    const cats = CATALOG.map(c => c[0]);
+    const codes = cats.map(cat => '- ' + cat + ': ' + UNITS.filter(u => u.cat === cat)
+      .map(u => u.id + ' (' + (u.custom ? 'their own: ' : '') + u.name.replace(/^\S+ \((.*)\)$/, '$1') + ')').join(', ')).join('\n');
+    const defaults = UNITS.filter(u => !u.custom).map(u => '- ' + u.id + ': ' + u.base.map(tName).join(', ')).join('\n');
+    return [
+      '# Fast Conversion: settings guide for AI assistants',
+      '',
+      'Fast Conversion is a one-page unit converter (' + APP_URL + '). You type a number, tap a unit, and read the answers.',
+      'Everything about how it is set up lives in one short settings block. The person pasting this wants you to change that block for them.',
+      '',
+      '## How to answer',
+      '1. Read what the person asks for, then edit the settings block under "Current settings".',
+      '2. Reply with the whole settings block inside ONE code block, so they can copy it with one tap. Keep its first line: `' + S_HEAD + '`',
+      '3. Change only what they asked for. Copy every other line exactly as it is.',
+      '4. Use only the setting names, values and unit codes in this guide. The app ignores anything else and tells them what it skipped.',
+      '5. If part of the request is impossible with these settings, say so in one short sentence above the code block. Put nothing else outside the code block.',
+      '6. If they have not said what they want yet, ask them in one short question.',
+      '',
+      'They copy your code block, tap "Paste AI answer" in the app, and the new setup applies at once and is remembered on that device.',
+      '',
+      '## Current settings',
+      '```',
+      current,
+      '```',
+      '',
+      '## The settings',
+      '| Setting | What it does | Allowed values | Default |',
+      '|---|---|---|---|',
+      '| `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |',
+      '| `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |',
+      '| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\\|` separates groups, which get a thin divider between them | `mm cm in ft \\| C F \\| km mi \\| kg lb \\| g oz \\| m yd \\| L gal \\| mL floz \\| km/h mph \\| bar psi \\| Nm ftlb \\| m2 ft2` |',
+      '| `keys` | Extra keys in a row above the phone\'s number pad, left to right (phones only). They add what the number pad lacks. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (switch to the letter keyboard and back); at most 8; `none` for no row | `/ space \' " ± C abc` |',
+      '| `fraction` | Inch fractions round to the nearest | `1/16`, `1/32`, `1/64` | `1/64` |',
+      '| `digits` | Significant digits in decimal answers | whole number 3 to 10 | `6` |',
+      '| `ruler` | Real-size ruler along the top (cm) and bottom (inches) of the yellow band | `on`, `off` | `on` |',
+      '| `ruler_mark` | Shade the typed length on the ruler | `on`, `off` | `on` |',
+      '| `theme` | Colours of the page below the yellow band | `auto` (follow the device), `light`, `dark` | `auto` |',
+      '| `answers.<code>` | The answers shown for one unit, in order. On a phone the first 4 fill the big tiles; the rest are listed below them. Add one line per unit you change. | unit codes of the same kind as `<code>`, plus `in-frac` (inch fraction), `ft-in` (feet and inches) and `lb-oz` (pounds and ounces); separated by commas. `default` puts back the built-in list. | see "Default answers" |',
+      '| `answers.typed-fraction` | The answers shown when someone types a fraction of an inch, like `3/8` or `1 3/8` | length units and the extras above | `in, mm, cm, ft, ft-in, thou` |',
+      '| `unit.<code>` | Adds a unit of their own, defined as an amount of a built-in unit. It then works everywhere: typed after a number, in `unit_bar` and in `answers`. `remove` deletes it. | a number then a built-in unit code, e.g. `unit.sheet = 2440 mm`. The code is up to 12 letters, digits or _, starting with a letter, and must not be a built-in code. Not for temperatures. | none |',
+      '',
+      '## Unit codes',
+      'Use these exact codes; they are case-sensitive (C is Celsius, c is not a code).',
+      codes,
+      '',
+      '## Default answers',
+      'What each unit shows when it has no `answers` line:',
+      defaults,
+      '- typed-fraction: ' + FRAC_IN.map(tName).join(', '),
+      '',
+      '## Examples',
+      'Request: "I do woodworking. Round fractions to 1/16 and show the fraction first when I type mm."',
+      'Lines to change: `fraction = 1/16` and add `answers.mm = in-frac, in, ft-in, cm`',
+      '',
+      'Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."',
+      'Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`',
+      '',
+      'Request: "I mostly cook. Temperatures and kitchen volumes first, start in °F."',
+      'Lines to change: `unit_bar = F C | mL cup tbsp tsp | g oz | kg lb | L gal` and `start_unit = F`',
+      '',
+      'This app converts between units of the same kind only. It has no currency, no time zones, no cooking by weight from volume (that needs the food\'s density), and no setting other than those above.',
+    ].join('\n');
+  }
+
+  const settings = { defaults: () => sClone(S_DEFAULTS), parse: sParse, text: sText, guide: sGuide, appUrl: APP_URL, guideUrl: GUIDE_URL };
+
+  return { parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes, configure, settings };
 })();
 </script>
 
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const input = $('q'), ghost = $('ghost'), field = $('field'), answer = $('answer'), hero = $('hero'),
+  const inputs = [$('q'), $('qa')];
+  let input = inputs[0];       // the box in use: the number-pad one, or the letter-keyboard one
+  const ghost = $('ghost'), field = $('field'), answer = $('answer'), hero = $('hero'),
     statusEl = $('status'), hintEl = $('hint'), alsoEl = $('also'), alsoHead = $('alsoHead'),
     gridEl = $('grid'), gridHead = $('gridHead'), others = $('others'), band = document.querySelector('.band'), tape = $('tape');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
   let pinned = 'mm', sel = 0, lastUnit = null, cur = null, list = [], sayTimer = 0, charW = 0.6;
-  let den = 64;
-  try { const d = +localStorage.getItem('uc-den'); if ([16, 32, 64].includes(d)) den = d; } catch (e) { /* 1/64 */ }
+  let den = 64, S = null;
   let auto = false;      // the page (not the person) has the whole value selected
   let pendingKey = '';   // the key that is bringing focus to the box
   const startsNumber = k => /[\d.,+\-]/.test(k);
@@ -716,7 +995,22 @@ const UC = (() => {
   let autoMm = guessPxPerMm();
   let pxmm = autoMm || CSS_MM, calSource = autoMm ? 'auto' : 'none';
   try { const v = parseFloat(localStorage.getItem('uc-pxmm')); if (v > 1 && v < 20) { pxmm = v; calSource = 'saved'; } } catch (e) { /* use the guess */ }
-  try { const saved = localStorage.getItem('uc-unit'); if (saved && UC.unit(saved)) pinned = saved; } catch (e) { /* no storage: start on mm */ }
+
+  // ── settings ──
+  const root = document.documentElement, hostTheme = root.getAttribute('data-theme');
+  const setText = $('setText'), setMsg = $('setMsg');
+  function loadSettings() {
+    let s = UC.settings.defaults(), text = null;
+    try { text = localStorage.getItem('uc-settings'); } catch (e) { /* defaults */ }
+    if (text) s = UC.settings.parse(text, s).s;
+    else try { const d = +localStorage.getItem('uc-den'); if ([16, 32, 64].includes(d)) s.fraction = d; } catch (e) { /* 1/64 */ }
+    return s;
+  }
+  function saveSettings() { try { localStorage.setItem('uc-settings', UC.settings.text(S)); } catch (e) { /* this visit only */ } }
+  const remember = () => S.remember_unit !== 'off';
+  S = loadSettings(); UC.configure(S); den = S.fraction;
+  pinned = S.start_unit;
+  try { const saved = remember() && localStorage.getItem('uc-unit'); if (saved && UC.unit(saved)) pinned = saved; } catch (e) { /* start_unit */ }
 
   function buildGrid() {
     const col = ids => '<div class="col">' + ids.split(' ').map(id => {
@@ -730,34 +1024,52 @@ const UC = (() => {
   }
   const unitbar = $('unitbar'), coarse = window.matchMedia('(pointer: coarse)').matches;
   const phone = () => window.innerWidth < 760;
-  function buildBar() {
-    // lengths first, then metric/imperial pairs in order of everyday use
-    const groups = [['mm', 'cm', 'in', 'ft'], ['C', 'F'], ['km', 'mi'], ['kg', 'lb'], ['g', 'oz'], ['m', 'yd'], ['L', 'gal'],
-      ['mL', 'floz'], ['km/h', 'mph'], ['bar', 'psi'], ['Nm', 'ftlb'], ['m2', 'ft2']];
+  function buildBar() { // from the unit_bar setting: lengths first, then metric/imperial pairs, by default
+    const groups = S.unit_bar.map(g => g.filter(id => UC.unit(id))).filter(g => g.length);
     unitbar.innerHTML = groups.map(g => '<span class="ugroup">' + g.map(id =>
       `<button type="button" data-pin="${id}" title="${esc(cap(UC.unit(id).name))}">${esc(UC.unit(id).label)}</button>`).join('') + '</span>').join('');
   }
-  function setKeys(mode) { // number pad or full keyboard
-    input.setAttribute('inputmode', mode);
-    $('kb').textContent = mode === 'decimal' ? 'abc' : '123';
+  // the row of extra keys above the phone's number pad, from the keys setting
+  const KEY_UI = {
+    '/': ['data-key="/"', '/', 'Slash'], space: ['data-key=" "', 'space', 'Space'], "'": ['data-key="\'"', '′', 'Feet'],
+    '"': ['data-key="&quot;"', '″', 'Inches'], '±': ['data-act="neg"', '±', 'Make negative or positive'],
+    C: ['data-act="clear"', 'C', 'Clear the box'], abc: ['data-act="kb"', 'abc', 'Switch between number pad and letter keyboard'],
+  };
+  function buildKeys() {
+    $('padkeys').innerHTML = S.keys.map(k => {
+      const [attr, label, aria] = KEY_UI[k];
+      return `<button type="button" ${attr} aria-label="${aria}">${k === 'abc' && input === inputs[1] ? '123' : esc(label)}</button>`;
+    }).join('');
+  }
+  // iOS won't change the keyboard of a box that already has focus, so there are two boxes:
+  // one opens the number pad, the other the letter keyboard. Switching moves the text and the focus across.
+  function switchKeyboard() {
+    const from = input, to = from === inputs[0] ? inputs[1] : inputs[0];
+    to.value = from.value;
+    to.hidden = false;
+    input = to;
+    pendingKey = ' ';  // caret to the end
+    to.focus();
+    from.hidden = true;
+    document.querySelectorAll('[data-act="kb"]').forEach(b => { b.textContent = to === inputs[1] ? '123' : 'abc'; });
   }
   function pin(id) { // read the number as this unit, and leave only the number in the box
     pinned = id;
-    try { localStorage.setItem('uc-unit', id); } catch (e) { /* fine without it */ }
+    if (remember()) try { localStorage.setItem('uc-unit', id); } catch (e) { /* fine without it */ }
     input.value = cur && cur.numText && !cur.ftin ? cur.numText : (cur && cur.ftin ? cur.numText : '');
     render(); input.focus();
   }
   function buildUnits() {
-    $('unitList').innerHTML = UC.catalog.map(([cat, us]) => `<p><b>${cat}</b> ` +
-      us.map(u => `<button type="button" data-unit="${u[0]}" title="${esc(cap(u[2]))}">${esc(u[1])}</button>`).join(' ') + '</p>').join('');
+    $('unitList').innerHTML = UC.catalog.map(([cat]) => `<p><b>${cat}</b> ` +
+      UC.units.filter(u => u.cat === cat).map(u => `<button type="button" data-unit="${esc(u.id)}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join(' ') + '</p>').join('');
   }
 
   function render() {
     const p = cur = UC.parse(input.value, pinned);
-    p.den = den;
+    p.den = den; p.sig = S.digits;
     if (p.unit && p.how !== 'pinned' && p.how !== 'empty' && p.unit.id !== pinned) {
       pinned = p.unit.id;
-      try { localStorage.setItem('uc-unit', pinned); } catch (e) { /* fine without it */ }
+      if (remember()) try { localStorage.setItem('uc-unit', pinned); } catch (e) { /* fine without it */ }
     }
     list = p.unit ? UC.rows(p) : [];
     const uid = p.unit ? p.unit.id : null;
@@ -803,7 +1115,7 @@ const UC = (() => {
 
     gridHead.textContent = `${p.ftin ? UC.fmt(p.value) : p.shown} read as other units`;
     for (const c of pairs) {
-      const r = UC.rows({ value: p.value, unit: UC.unit(c.id), den })[0];
+      const r = UC.rows({ value: p.value, unit: UC.unit(c.id), den, sig: S.digits })[0];
       c.v.textContent = r.show; c.u.textContent = r.unit;
       c.val.dataset.copy = r.copy; c.val.dataset.copyUnit = r.copyUnit;
       c.el.classList.toggle('on', c.id === uid);
@@ -850,7 +1162,7 @@ const UC = (() => {
     g.textBaseline = 'top';
     const snap = x => Math.round(x * dpr) / dpr, mm = pxmm, sixteenth = pxmm * 25.4 / 16;
     // the typed length, marked from the zero edge on both scales
-    if (cur && cur.unit && cur.unit.cat === 'Length' && Number.isFinite(cur.value) && cur.value) {
+    if (S.ruler_mark !== 'off' && cur && cur.unit && cur.unit.cat === 'Length' && Number.isFinite(cur.value) && cur.value) {
       const len = Math.abs(UC.unit('mm').from(cur.unit.to(cur.value))) * mm, x = len;
       if (len <= w) {
       g.save();
@@ -901,7 +1213,9 @@ const UC = (() => {
 
   // extra keys for the number pad: act on press and keep focus in the box, so the keyboard stays open
   function padKey(k) {
-    if (k === 'neg') {
+    if (k === 'clear') {
+      input.value = '';
+    } else if (k === 'neg') {
       input.value = /^\s*-/.test(input.value) ? input.value.replace(/^\s*-\s*/, '') : '-' + input.value;
     } else {
       let a = input.selectionStart ?? input.value.length, z = input.selectionEnd ?? a;
@@ -912,13 +1226,26 @@ const UC = (() => {
     if (document.activeElement !== input) { pendingKey = ' '; input.focus(); }
     const n = input.value.length; if (k === 'neg') input.setSelectionRange(n, n);
   }
+  const keyAct = b => b.dataset.act === 'kb' ? switchKeyboard() : padKey(b.dataset.act || b.dataset.key);
   let touchedKey = 0;
-  $('padkeys').addEventListener('touchstart', e => {
-    const b = e.target.closest('[data-key], #neg'); if (!b) return;
-    e.preventDefault(); touchedKey = Date.now(); padKey(b.id === 'neg' ? 'neg' : b.dataset.key);
+  const padEl = $('padkeys');
+  // Keys act on touch and never take focus, so the keyboard stays up. The keyboard switch waits for the
+  // finger to lift, the moment iOS lets a page move focus to another box and bring up a different keyboard.
+  padEl.addEventListener('touchstart', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    e.preventDefault(); touchedKey = Date.now();
+    if (b.dataset.act !== 'kb') keyAct(b);
   }, { passive: false });
-  $('padkeys').addEventListener('mousedown', e => { if (e.target.closest('[data-key], #neg')) e.preventDefault(); });
-  $('padkeys').addEventListener('click', e => { if (Date.now() - touchedKey < 800 && e.target.closest('[data-key], #neg')) e.stopPropagation(); }, true);
+  padEl.addEventListener('touchend', e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.act !== 'kb') return;
+    e.preventDefault(); touchedKey = Date.now(); keyAct(b);
+  }, { passive: false });
+  padEl.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+  padEl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    e.stopPropagation();
+    if (Date.now() - touchedKey > 800) keyAct(b);
+  }, true);
 
   function legacyCopy(text) {
     const t = document.createElement('textarea');
@@ -954,7 +1281,7 @@ const UC = (() => {
     render(); input.focus();
   }
 
-  input.addEventListener('input', render);
+  inputs.forEach(el => el.addEventListener('input', render));
   // Coming back to the box selects everything, so a new number replaces the old value.
   // The first key onto that selection decides what it replaces: a digit starts over,
   // a unit swaps only the unit ("12 cm", copy, "mm" gives 12mm), a space or > carries on at the end.
@@ -966,15 +1293,20 @@ const UC = (() => {
     const m = cur && !cur.ftin ? v.match(NUM_HEAD) : null;
     if (m) input.setSelectionRange(m[0].length, n); else input.select();
   }
-  input.addEventListener('focus', () => { if (pendingKey) { aim(pendingKey); pendingKey = ''; auto = false; } else selectAll(); });
-  input.addEventListener('mousedown', e => { if (document.activeElement !== input) { e.preventDefault(); input.focus(); } else auto = false; });
-  input.addEventListener('keydown', e => {
+  inputs.forEach(el => el.addEventListener('focus', () => { if (pendingKey) { aim(pendingKey); pendingKey = ''; auto = false; } else selectAll(); }));
+  inputs.forEach(el => el.addEventListener('mousedown', e => { if (document.activeElement !== input) { e.preventDefault(); input.focus(); } else auto = false; }));
+  inputs.forEach(el => el.addEventListener('keydown', e => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) return;
     const typed = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
     if (auto && typed && input.selectionStart === 0 && input.selectionEnd === input.value.length) aim(e.key);
     auto = false;
+  }));
+  // back in the app: ready to type again, unless they were busy further down the page
+  window.addEventListener('focus', () => {
+    const a = document.activeElement;
+    if (a === input) selectAll();
+    else if ((!a || a === document.body) && window.scrollY < band.offsetHeight) input.focus();
   });
-  window.addEventListener('focus', () => { if (document.activeElement === input) selectAll(); else input.focus(); });
   window.addEventListener('resize', () => {
     fit();
     autoMm = guessPxPerMm();
@@ -985,13 +1317,9 @@ const UC = (() => {
     const c = e.target.closest('[data-copy]');
     if (c) { copy(e.shiftKey ? c.dataset.copyUnit : c.dataset.copy, c); return; }
     const dn = e.target.closest('[data-den]');
-    if (dn) { den = +dn.dataset.den; try { localStorage.setItem('uc-den', String(den)); } catch (er) { /* this visit only */ } render(); return; }
+    if (dn) { den = S.fraction = +dn.dataset.den; saveSettings(); setText.value = UC.settings.text(S); render(); return; }
     const pn = e.target.closest('[data-pin]');
     if (pn) { pin(pn.dataset.pin); return; }
-    if (e.target.closest('#neg')) { padKey('neg'); return; }
-    const pk = e.target.closest('[data-key]');
-    if (pk) { padKey(pk.dataset.key); return; }
-    if (e.target.closest('#kb')) { setKeys(input.getAttribute('inputmode') === 'decimal' ? 'text' : 'decimal'); pendingKey = ' '; input.blur(); input.focus(); return; }
     const u = e.target.closest('[data-unit]');
     if (u) { if (phone()) { pin(u.dataset.unit); window.scrollTo({ top: 0 }); } else setUnit(u.dataset.unit); return; }
     const t = e.target.closest('[data-try]');
@@ -999,6 +1327,7 @@ const UC = (() => {
   });
 
   document.addEventListener('keydown', e => {
+    if (e.target instanceof Element && e.target.closest('textarea')) return; // the settings box keeps its own keys
     if (!qr.hidden) { if (e.key === 'Escape') qr.hidden = true; return; }
     if (!cal.hidden) { if (e.key === 'Escape') cal.hidden = true; return; }
     const onButton = e.target instanceof Element && e.target.closest('button');
@@ -1018,9 +1347,73 @@ const UC = (() => {
     }
   });
 
+  // ── customize with AI: copy instructions out, paste the answer back ──
+  function note(main, errors = [], bad = false) {
+    setMsg.classList.toggle('bad', bad);
+    setMsg.innerHTML = esc(main) + (errors.length ? '<ul>' + errors.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>' : '');
+  }
+  function applyLook() {
+    tape.hidden = S.ruler === 'off';
+    if (S.theme === 'auto') { if (hostTheme) root.setAttribute('data-theme', hostTheme); else root.removeAttribute('data-theme'); }
+    else root.setAttribute('data-theme', S.theme);
+  }
+  function useSettings(s) {
+    S = s; UC.configure(S); den = S.fraction;
+    if (!UC.unit(pinned)) pinned = S.start_unit;
+    buildBar(); buildKeys(); buildUnits(); applyLook();
+    setText.value = UC.settings.text(S);
+    render();
+  }
+  const lineMap = t => new Map(t.split('\n').filter(l => l[0] !== '#').map(l => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
+  function applyText(text) {
+    if (!text.trim()) { note('Nothing to apply yet. Copy the AI’s answer first.', [], true); return; }
+    const before = lineMap(UC.settings.text(S));
+    const { s, errors, found } = UC.settings.parse(text, S);
+    if (!found) { note('No settings found in that text. Ask the AI to reply with the settings block in one code block, then copy that.', [], true); return; }
+    const after = lineMap(UC.settings.text(s));
+    const changed = [...new Set([...before.keys(), ...after.keys()])].filter(k => before.get(k) !== after.get(k));
+    useSettings(s); saveSettings();
+    const head = changed.length ? `Done. Changed ${changed.join(', ')}.` : 'No changes: those settings were already in place.';
+    note(errors.length ? head + ' Skipped:' : head, errors, errors.length > 0 && !changed.length);
+  }
+  async function writeClip(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { return legacyCopy(text); }
+  }
+  $('aiCopy').addEventListener('click', async () => {
+    const ok = await writeClip(UC.settings.guide(UC.settings.text(S)));
+    note(ok ? 'Copied. Open any AI chat, paste, and say what you want changed. Then copy its answer and tap 2.'
+      : 'This view blocked copying. Use the “Guide for AI” link below, or copy your settings and send them with it.', [], !ok);
+  });
+  $('aiPaste').addEventListener('click', async () => {
+    let text = '';
+    try { text = await navigator.clipboard.readText(); } catch (e) { text = ''; }
+    if (text) { applyText(text); return; }
+    setText.focus(); setText.select();
+    note('Your browser didn’t let the page read the clipboard. Tap in the box below, choose Paste, and it applies at once.', [], true);
+  });
+  setText.addEventListener('paste', e => {
+    const text = e.clipboardData && e.clipboardData.getData('text');
+    if (!text) return;
+    e.preventDefault(); applyText(text);
+  });
+  $('setApply').addEventListener('click', () => applyText(setText.value));
+  $('setCopy').addEventListener('click', async () => {
+    const ok = await writeClip(UC.settings.text(S));
+    note(ok ? 'Copied your settings.' : 'This view blocked copying. Select the text in the box and copy it.', [], !ok);
+  });
+  let resetArmed = 0;
+  $('setReset').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (Date.now() - resetArmed > 4000) { resetArmed = Date.now(); b.textContent = 'Tap again to reset'; setTimeout(() => { b.textContent = 'Reset to defaults'; }, 4000); return; }
+    resetArmed = 0; b.textContent = 'Reset to defaults';
+    useSettings(UC.settings.defaults()); saveSettings();
+    note('Back to the defaults.');
+  });
+
   function start(saved) {
-    buildGrid(); buildUnits(); buildBar();
-    setKeys(coarse ? 'decimal' : 'text');
+    inputs[0].setAttribute('inputmode', coarse ? 'decimal' : 'text');
+    buildGrid(); buildUnits(); buildBar(); buildKeys(); applyLook();
+    setText.value = UC.settings.text(S);
     if (saved && typeof saved.raw === 'string') input.value = saved.raw;
     measure(); render(); drawTape(); calShow();
     if ('ResizeObserver' in window) new ResizeObserver(drawTape).observe(band);
