@@ -394,7 +394,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 
 <div class="cal" id="cal" hidden role="dialog" aria-labelledby="calHead">
   <h2 id="calHead">Make the ruler real size</h2>
-  <p>Lay a bank card across the screen and match this bar to the card's short side. Or hold a real ruler against the yellow edge at the top.</p>
+  <p>Works on any phone or tablet. Lay a bank card on the screen and drag the slider until the bar matches the card’s short side. Or hold a real ruler against the yellow edge at the top and match the marks.</p>
   <div class="calbar" id="calbar">54 mm, a bank card's short side</div>
   <div class="calrow">
     <button type="button" id="calMinus" aria-label="Smaller">&minus;</button>
@@ -1188,10 +1188,8 @@ const UC = (() => {
   function calShow() {
     calRange.value = pxmm; calbar.style.width = (CARD * pxmm) + 'px';
     $('calStatus').textContent = calSource === 'saved' ? 'Set by you on this device.'
-      : calSource === 'auto' ? (screen.width === 375 && screen.height === 812
-        ? 'Set for an iPhone 12 or 13 mini. On an X, XS or 11 Pro, set it with a card.'
-        : 'Set automatically for this iPhone. Check it against a card.')
-      : 'Not real size on this device yet. Tap to set it.';
+      : calSource === 'auto' ? 'Sized automatically for this device. Check it once against a bank card.'
+      : 'Not real size on this device yet. Tap to set it once with a bank card.';
   }
   function calSet(v, save = true) {
     pxmm = Math.min(9, Math.max(2.5, v)); calSource = save ? 'saved' : calSource;
