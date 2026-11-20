@@ -81,6 +81,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
   border-bottom: 3px solid transparent; white-space: pre; overflow: hidden; pointer-events: none;
 }
 .ghost i { visibility: hidden; font-style: normal; }
+.ghost b.done { font-weight: 700; color: color-mix(in srgb, var(--tape-ink) 40%, transparent); }
 .ghost b { font-weight: 400; color: color-mix(in srgb, var(--tape-ink) 48%, transparent); }
 .equals { grid-area: eq; font: 400 44px/1 var(--font-num); opacity: .55; }
 .answer { grid-area: answer; min-width: 0; font: 700 60px/1.15 var(--font-num); }
@@ -126,6 +127,9 @@ body { padding-bottom: env(safe-area-inset-bottom); }
   background: transparent; border: 1.5px solid var(--tape-ink); border-radius: 999px; cursor: pointer;
 }
 .unitbar button.on { background: var(--tape-ink); color: var(--tape); }
+.suggest button { min-width: 0; }
+.suggest button.on::after { content: " \2713"; font-weight: 700; }
+.eq.suggesting #unitbar, .eq:not(.suggesting) #suggest { display: none !important; }
 .ugroup { display: flex; flex: none; gap: 6px; }
 .ugroup + .ugroup { padding-left: 12px; border-left: 1.5px solid color-mix(in srgb, var(--tape-ink) 30%, transparent); }
 
@@ -321,6 +325,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
       </div>
       <div class="padkeys" id="padkeys" role="group" aria-label="Extra keys"></div>
       <div class="unitbar" id="unitbar" role="group" aria-label="Read the number as"></div>
+      <div class="unitbar suggest" id="suggest" role="group" aria-label="Units that match what you typed"></div>
       <div class="equals" aria-hidden="true">=</div>
       <div class="answer" id="answer"><button type="button" class="hero" id="hero" title="Click to copy"></button></div>
       <div class="quad" id="quad"></div>
@@ -609,7 +614,7 @@ const UC = (() => {
     const exact = ALIAS.get(key) || null;
     const cands = UNITS.filter(u => u !== exact && u.keys.some(k => k.startsWith(key)));
     // best guess first: the unit's own short name starts with what was typed, then units from the main table
-    const rank = u => (u.keys[0].startsWith(key) ? 2 : 0) + (COMMON.has(u.id) ? 1 : 0);
+    const rank = u => (u.keys[0].startsWith(key) ? 2 : 0) + (FAV.has(u.id) ? 1 : 0) + (COMMON.has(u.id) ? 1 : 0);
     cands.sort((a, b) => rank(b) - rank(a));
     return { exact, cands };
   }
@@ -720,7 +725,9 @@ const UC = (() => {
     UNITS.push(u); BY[id] = u; ALIAS.set(norm(id), u);
   }
   const usable = list => list.filter(t => BY[t.split(':')[0]]);
+  let FAV = new Set(); // units on the person's button bar rank first among guesses
   function configure(s) {
+    FAV = new Set((s.unit_bar || []).flat());
     dropCustom();
     for (const [id, d] of Object.entries(s.units || {})) if (BY[d.of] && !BY[d.of].custom && !BY[id]) addUnit(id, d.n, d.of);
     for (const u of UNITS) u.targets = usable((s.answers && s.answers[u.id]) || u.base);
@@ -940,7 +947,16 @@ const UC = (() => {
 
   const settings = { defaults: () => sClone(S_DEFAULTS), parse: sParse, text: sText, guide: sGuide, appUrl: APP_URL, guideUrl: GUIDE_URL };
 
-  return { parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes, configure, settings };
+  // the rest of the unit's name after what was typed: "mi" → "les", "f" → "ahrenheit"
+  function completion(u, typed) {
+    const t = norm(typed || '');
+    if (!u || !t) return '';
+    const words = u.name.toLowerCase().split(/[\s-]+/);
+    const keys = u.keys.filter(k => k.startsWith(t) && k.length > t.length && /^[a-z]+$/.test(k));
+    const best = keys.find(k => words.includes(k)) || keys.sort((a, b) => b.length - a.length)[0];
+    return best ? best.slice(t.length) : '';
+  }
+  return { completion, parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes, configure, settings };
 })();
 </script>
 
@@ -1078,7 +1094,15 @@ const UC = (() => {
 
     // the unit a bare number is being read as, shown right after what was typed
     const bare = p.how === 'pinned' || p.how === 'implied' || p.how === 'empty';
-    ghost.innerHTML = bare ? `<i>${esc(input.value || '1')}</i><b> ${esc(p.unit.label)}</b>` : '';
+    const typedUnit = p.unit && p.unitText && /[a-z]/i.test(p.unitText) && !p.ftin && (p.how === 'typed' || p.how === 'guess');
+    const rest = typedUnit && input.value.endsWith(p.unitText) ? UC.completion(p.unit, p.unitText) : '';
+    ghost.innerHTML = bare ? `<i>${esc(input.value || '1')}</i><b> ${esc(p.unit.label)}</b>`
+      : rest ? `<i>${esc(input.value)}</i><b class="done">${esc(rest)}</b>` : '';
+    // while a unit is being typed, the button row shows what it matches: the one in use first, then the alternatives
+    const eqEl = document.querySelector('.eq');
+    eqEl.classList.toggle('suggesting', !!typedUnit);
+    $('suggest').innerHTML = typedUnit ? [p.unit, ...p.cands].slice(0, 8).map((u, i) =>
+      `<button type="button" data-sug="${esc(u.id)}" class="${i ? '' : 'on'}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join('') : '';
 
     const top = list[0];
     hero.disabled = !top;
@@ -1103,7 +1127,7 @@ const UC = (() => {
     }
     statusEl.innerHTML = st;
     statusEl.classList.toggle('bad', p.how === 'unknown' || p.how === 'badnum');
-    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum' || p.how === 'guess');
+    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum');
     unitbar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.pin === uid));
 
     alsoHead.textContent = p.unit ? `${p.q} is also` : 'Nothing to convert yet';
@@ -1224,6 +1248,19 @@ const UC = (() => {
     if (document.activeElement !== input) { pendingKey = ' '; input.focus(); }
     const n = input.value.length; if (k === 'neg') input.setSelectionRange(n, n);
   }
+  // suggestion chips swap the typed letters for that unit, keeping the keyboard up
+  const sugEl = $('suggest');
+  let touchedSug = 0;
+  sugEl.addEventListener('touchend', e => {
+    const b = e.target.closest('[data-sug]'); if (!b) return;
+    e.preventDefault(); touchedSug = Date.now(); setUnit(b.dataset.sug);
+  }, { passive: false });
+  sugEl.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+  sugEl.addEventListener('click', e => {
+    const b = e.target.closest('[data-sug]'); if (!b) return;
+    e.stopPropagation();
+    if (Date.now() - touchedSug > 800) setUnit(b.dataset.sug);
+  }, true);
   const keyAct = b => b.dataset.act === 'kb' ? switchKeyboard() : padKey(b.dataset.act || b.dataset.key);
   let touchedKey = 0;
   const padEl = $('padkeys');
@@ -1276,7 +1313,9 @@ const UC = (() => {
     const u = UC.unit(id);
     if (!u) return;
     input.value = (cur && cur.numText ? cur.numText + ' ' : '') + u.label;
-    render(); input.focus();
+    render();
+    // ready for the next value: a number replaces it, a unit swaps just the unit
+    if (document.activeElement !== input) input.focus(); else selectAll();
   }
 
   inputs.forEach(el => el.addEventListener('input', render));
