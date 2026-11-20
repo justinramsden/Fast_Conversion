@@ -22,8 +22,8 @@
 @font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/barlow-semi-condensed-latin-500-normal.woff2) format('woff2'); }
 @font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/barlow-semi-condensed-latin-600-normal.woff2) format('woff2'); }
 :root {
-  /* Layout: a full-width tape-yellow band holds one equation (what you type = the top answer).
-     Below it, two ruled tables on paper: more answers for this unit, then the same number read as every other unit. */
+  /* Layout: a full-width tape-yellow band holds the box you type in, the unit buttons and four answer tiles.
+     Below it on paper: the rest of the answers, then every unit, tips and settings. */
   --paper: #f3f3ef;
   --ink: #1a1915;
   --mute: #66635a;
@@ -88,17 +88,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .ghost i { visibility: hidden; font-style: normal; }
 .ghost b.done { font-weight: 700; color: color-mix(in srgb, var(--tape-ink) 40%, transparent); }
 .ghost b { font-weight: 400; color: color-mix(in srgb, var(--tape-ink) 48%, transparent); }
-.equals { grid-area: eq; font: 400 44px/1 var(--font-num); opacity: .55; }
-.answer { grid-area: answer; min-width: 0; font: 700 60px/1.15 var(--font-num); }
-.hero {
-  position: relative; max-width: 100%; padding: 6px 12px 6px 18px; text-align: left;
-  font: inherit; color: var(--tape-ink); background: none; border: 0; border-radius: 4px;
-  cursor: pointer; overflow-wrap: anywhere; font-variant-numeric: tabular-nums;
-}
-.hero .u { font-weight: 400; }
-.hero:hover:not(:disabled) { background: rgba(255, 255, 255, .3); }
-.hero:disabled { cursor: default; opacity: .5; }
-.hero.sel::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px; background: var(--tape-mark); }
+ content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px; background: var(--tape-mark); }
 .sub { margin: 0; min-height: 2.7em; font: 500 15px/1.35 var(--font-ui); color: color-mix(in srgb, var(--tape-ink) 82%, transparent); }
 #status { grid-area: status; padding-left: 12px; }
 #status.bad { color: var(--tape-ink); font-weight: 600; }
@@ -161,26 +151,7 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
 .row:hover .c, .row.sel .c, .row:focus-visible .c { opacity: 1; }
 .row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mark); }
 
-.others-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
 .tip { margin: 0; font-size: 14px; color: var(--mute); }
-.grid { margin-top: 10px; border-top: 2px solid var(--ink); }
-.cat { display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
-.cat.head { padding: 5px 0; font-size: 13px; color: var(--mute); }
-.cat.head span { padding-left: 8px; }
-.cat-name { font: 600 14px/28px var(--font-ui); color: var(--mute); }
-.col { display: grid; align-content: start; }
-.pair { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: start; border-radius: 3px; }
-.src, .val { min-height: 28px; padding: 3px 8px; text-align: left; background: none; border: 0; border-radius: 3px; cursor: pointer; }
-.src { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font: 500 15px/22px var(--font-ui); white-space: nowrap; }
-.src::after { content: "\2192"; color: var(--mute); font: 400 13px/1 system-ui, sans-serif; }
-.val { line-height: 22px; }
-.val .v { font: 400 15px/22px var(--font-num); font-variant-numeric: tabular-nums; }
-.val .u { font: 500 14px/22px var(--font-ui); color: var(--mute); }
-.src:hover, .val:hover { background: var(--wash); }
-.pair.on { background: var(--wash); box-shadow: inset 3px 0 0 var(--mark); }
-.pair.on .src { font-weight: 600; }
-.quiet .cat:not(.head) { opacity: .62; }
-.quiet:hover .cat, .quiet:focus-within .cat { opacity: 1; }
 .copied { background: color-mix(in srgb, var(--mark) 20%, transparent) !important; }
 .band .copied { background: rgba(255, 255, 255, .6) !important; }
 
@@ -261,6 +232,12 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 48px;
   font-size: 15px; color: var(--mute);
 }
+.tips summary { cursor: pointer; list-style: none; }
+.tips summary::-webkit-details-marker { display: none; }
+.tips summary h2 { display: inline; }
+.tips summary::after { content: " +"; font: 600 15px/1 var(--font-ui); color: var(--mute); }
+.tips details[open] summary::after { content: " \2212"; }
+.tips details[open] summary { margin-bottom: 10px; display: block; }
 .ref h2 { margin-bottom: 10px; font-size: 15px; color: var(--ink); }
 .ref p { margin: 0 0 8px; max-width: 46ch; }
 .ways { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; align-items: baseline; }
@@ -274,7 +251,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 .units button:hover { color: var(--ink); }
 
 @media (prefers-reduced-motion: no-preference) {
-  .row, .src, .val, .hero, .chip { transition: background-color .12s; }
+  .row, .chip { transition: background-color .12s; }
 }
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); }
@@ -283,11 +260,11 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 @media all {
   /* one layout everywhere: unit bar, four answer tiles, then the rest of the answers */
   .band-in { padding: 18px 12px 18px; }
-  .equals, .answer { display: none; }
   .quad { display: grid; }
   .rows li:nth-child(-n+3) { display: none; }
   /* the bare-number table and keyboard notes are desktop tools; on a phone the unit bar does that job */
-  #others, .ref > section:not(.units) { display: none; }
+  .ref > section:not(.units):not(.tips) { display: none; }
+  .ref > .units { order: -1; }
   .ref-wrap { margin-top: 0; border-top: 0; }
   .ref { padding-top: 16px; padding-bottom: 24px; }
   .calfoot { padding-left: 16px; padding-right: 16px; }
@@ -302,9 +279,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   main > section:first-child h2 { display: none; }
   .ref { padding-left: 16px; padding-right: 16px; }
   .eq { grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; row-gap: 6px; grid-template-areas: "field field" "keys keys" "units units" "status status" "quad quad" "hint hint"; }
-  .equals { font-size: 26px; padding-left: 8px; }
-  .hero { padding: 2px 10px 2px 14px; }
-  .hero.sel::before { top: 6px; bottom: 6px; }
   .sub { min-height: 0; display: none; }
   .sub.need { display: block; padding-left: 8px; }
   .padkeys, .unitbar { display: flex; }
@@ -315,7 +289,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .rows { margin-top: 0; border-top: 0; }
   .row { padding: 9px 12px 9px 16px; }
   .row .c { opacity: 1; }
-  .others-head { padding-top: 4px; }
 }
 @media (min-width: 761px) {
   /* wider screens: the same layout in a centred column, a little larger, every unit button in view */
@@ -330,8 +303,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .quad .v { font-size: 28px; }
   .quad .u { font-size: 18px; }
   .quad .e { font-size: 13px; }
-  .ref > section:not(.units) { display: block; }
-  .ref > .units { order: -1; }
+  .ref > section:not(.units):not(.tips) { display: block; }
 }
 /* a mouse and keyboard: no extra keys, and a reminder that Enter copies the marked answer */
 @media (hover: hover) and (pointer: fine) {
@@ -340,12 +312,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 }
 .quad button.sel { box-shadow: inset 0 0 0 2px var(--tape-ink); }
 @media (max-width: 520px) {
-  .cat { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 8px; }
-  .cat-name { grid-column: 1 / -1; line-height: 22px; padding-left: 8px; }
-  .cat.head span:first-child { display: none; }
-  .pair { grid-template-columns: 70px minmax(0, 1fr); }
-  .src, .val { padding-left: 6px; padding-right: 4px; }
-  .src::after { content: none; }
 }
 </style>
 </head>
@@ -366,8 +332,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
       <div class="padkeys" id="padkeys" role="group" aria-label="Extra keys"></div>
       <div class="unitbar" id="unitbar" role="group" aria-label="Read the number as"></div>
       <div class="unitbar suggest" id="suggest" role="group" aria-label="Units that match what you typed"></div>
-      <div class="equals" aria-hidden="true">=</div>
-      <div class="answer" id="answer"><button type="button" class="hero" id="hero" title="Click to copy"></button></div>
       <div class="quad" id="quad"></div>
       <p class="sub" id="status"></p>
       <p class="sub" id="hint"></p>
@@ -381,19 +345,12 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
     <h2 id="alsoHead"></h2>
     <ul class="rows" id="also"></ul>
   </section>
-  <section id="others" aria-labelledby="gridHead">
-    <div class="others-head">
-      <h2 id="gridHead"></h2>
-      <p class="tip">Click a value to copy it. Click a unit to switch to it.</p>
-    </div>
-    <div class="grid" id="grid"></div>
-  </section>
 </main>
 
 <div class="ref-wrap">
 <footer class="ref">
-  <section aria-labelledby="waysHead">
-    <h2 id="waysHead">Ways to type a value</h2>
+  <section class="tips">
+    <details id="tips"><summary><h2 id="waysHead">Ways to type a value</h2></summary>
     <dl class="ways">
       <dt><button type="button" class="try" data-try="25.4">25.4</button></dt><dd>A bare number reads as the last unit you used.</dd>
       <dt><button type="button" class="try" data-try="25.4mm">25.4mm</button></dt><dd>Put the unit after the number. The space is optional.</dd>
@@ -404,6 +361,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
       <dt><button type="button" class="try" data-try="3 lb 4 oz">3 lb 4 oz</button></dt><dd>Two amounts add up. 5m 20cm and 1 h 30 min work too.</dd>
       <dt><button type="button" class="try" data-try="thou">thou</button></dt><dd>A unit alone shows what one of it is.</dd>
     </dl>
+    </details>
   </section>
   <section aria-labelledby="keysHead">
     <h2 id="keysHead">Keys</h2>
@@ -587,20 +545,6 @@ const UC = (() => {
       ['mpgUK', 'mpg (imp)', 'miles per imperial gallon', { to: v => 282.480936 / v, from: b => 282.480936 / b }, 'L/100km mpg', 'mpguk mpgimp mpg(imp)'],
     ]],
   ];
-  // The always-visible table: [row name, metric sources, imperial sources]. Each shows its first target.
-  const TABLE = [
-    ['Length', 'mm cm m km', 'in ft mi thou'],
-    ['Temperature', 'C', 'F'],
-    ['Weight', 'g kg', 'oz lb'],
-    ['Volume', 'mL L', 'floz gal'],
-    ['Torque', 'Nm kgcm', 'ftlb inlb'],
-    ['Pressure', 'bar kPa', 'psi'],
-    ['Speed', 'km/h mm/min m/min', 'mph in/min ft/min'],
-    ['Area', 'm2', 'ft2'],
-    ['Power', 'kW', 'hp'],
-    ['Force', 'N', 'lbf'],
-  ];
-
   const UNITS = [], BY = {}, ALIAS = new Map(), clashes = [];
   for (const [cat, list] of CATALOG) for (const [id, label, name, f, targets, aliases] of list) {
     const u = {
@@ -612,7 +556,8 @@ const UC = (() => {
     UNITS.push(u); BY[id] = u;
     for (const k of u.keys) { if (u.soft.includes(k)) continue; if (ALIAS.has(k)) clashes.push(k); ALIAS.set(k, u); }
   }
-  const COMMON = new Set(TABLE.flatMap(r => (r[1] + ' ' + r[2]).split(' ')));
+  // everyday units: ranked first among guesses for typed letters
+  const COMMON = new Set('mm cm m km in ft mi thou C F g kg oz lb mL L floz gal Nm kgcm ftlb inlb bar kPa psi km/h mm/min m/min mph in/min ft/min m2 ft2 kW hp N lbf'.split(' '));
 
   // ── formatting ──
   function fmt(x, sig = 6) {
@@ -634,6 +579,7 @@ const UC = (() => {
   // ── every answer for one reading of the number ──
   function rows(p) {
     const u = p.unit, v = p.value, out = [], sig = p.sig || 6;
+    if (!Number.isFinite(u.to(v))) return []; // e.g. 0 mpg: no fuel-use answer exists
     let list = u.targets;
     // a typed fraction of an inch: lead with the same length as decimal inches
     if (p.frac && u.id === 'in' && !p.ftin) list = fracList;
@@ -669,7 +615,7 @@ const UC = (() => {
         const fd = Math.min(den, 16), rem = inches - ft * 12, fr = fraction(rem, fd);
         let wh = fr.whole;
         if (wh === 12) { ft += 1; wh = 0; }
-        const tail = wh + (fr.num ? ' ' + fr.num + '/' + fr.den : '');
+        const tail = fr.num ? (wh ? wh + ' ' : '') + fr.num + '/' + fr.den : String(wh); // 17′ 3/4″, not 17′ 0 3/4″
         const plain = sg + ft + "' " + tail + '"';
         out.push({ show: sg + ft + '′ ' + tail + '″', unit: '', copy: plain, copyUnit: plain, note: Math.abs(fr.value - rem) < 1e-9 ? '' : 'to the nearest 1/' + fd + ' in' });
       } else if (mode === 'lboz') { // pounds and ounces
@@ -710,7 +656,7 @@ const UC = (() => {
     const r = resolve(right);
     return r.exact || r.cands.length ? { left, right } : null;
   }
-  const Q = String.raw`(?:\d+[ -]+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+\.?\d*|\.\d+)`; // 1 3/8 | 3/8 | 25.4
+  const Q = String.raw`(?:\d+[ -]+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)`; // 1 3/8 | 3/8 | 25.4
   const RE_FTIN = new RegExp(String.raw`^(\d+\.?\d*)\s*('|ft|feet|foot)(\s*)(${Q})\s*("|in|inch|inches)?$`, 'i');
   const RE_NUM = new RegExp(String.raw`^(${Q})\s*(.*)$`);
   const tidy = s => s.trim().replace(/\s*\/\s*/, '/').replace(/[ -]+/, ' ');
@@ -1071,7 +1017,7 @@ const UC = (() => {
     const best = keys.find(k => words.includes(k)) || keys.sort((a, b) => b.length - a.length)[0];
     return best ? best.slice(t.length) : '';
   }
-  return { completion, parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, TABLE, clashes, configure, settings };
+  return { completion, parse, rows, fmt, norm, resolve, unit: id => BY[id], units: UNITS, catalog: CATALOG, clashes, configure, settings };
 })();
 </script>
 
@@ -1080,9 +1026,9 @@ const UC = (() => {
   const $ = id => document.getElementById(id);
   const inputs = [$('q'), $('qa')];
   let input = inputs[0];       // the box in use: the number-pad one, or the letter-keyboard one
-  const ghost = $('ghost'), field = $('field'), answer = $('answer'), hero = $('hero'),
+  const ghost = $('ghost'), field = $('field'),
     statusEl = $('status'), hintEl = $('hint'), alsoEl = $('also'), alsoHead = $('alsoHead'),
-    gridEl = $('grid'), gridHead = $('gridHead'), others = $('others'), band = document.querySelector('.band'), tape = $('tape');
+    band = document.querySelector('.band'), tape = $('tape');
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // the number font leaves a wide gap after a decimal point; pull the next digit back in
@@ -1094,7 +1040,6 @@ const UC = (() => {
   let pendingKey = '';   // the key that is bringing focus to the box
   const startsNumber = k => /[\d.,+\-]/.test(k);
   const NUM_HEAD = /^\s*[-+\u2212]?\s*(?:\d+[ -]+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|[\d.,]+)/;
-  const pairs = [];
 
   // ── real-size ruler ──
   // Browsers don't report the screen's physical size, so: guess it for iPhones from the screen model, otherwise calibrate against a card.
@@ -1145,16 +1090,6 @@ const UC = (() => {
   pinned = S.start_unit;
   try { const saved = remember() && localStorage.getItem('uc-unit'); if (saved && UC.unit(saved)) pinned = saved; } catch (e) { /* start_unit */ }
 
-  function buildGrid() {
-    const col = ids => '<div class="col">' + ids.split(' ').map(id => {
-      const u = UC.unit(id);
-      return `<div class="pair" data-pair="${id}"><button type="button" class="src" data-unit="${id}" title="Switch to ${esc(u.name)}">${esc(u.label)}</button>` +
-        `<button type="button" class="val" data-copy="" data-copy-unit=""><span class="v"></span> <span class="u"></span></button></div>`;
-    }).join('') + '</div>';
-    gridEl.innerHTML = '<div class="cat head"><span></span><span>Metric to imperial</span><span>Imperial to metric</span></div>' +
-      UC.TABLE.map(([name, a, b]) => `<div class="cat"><div class="cat-name">${name}</div>${col(a)}${col(b)}</div>`).join('');
-    gridEl.querySelectorAll('.pair').forEach(el => pairs.push({ id: el.dataset.pair, el, val: el.querySelector('.val'), v: el.querySelector('.v'), u: el.querySelector('.u') }));
-  }
   const unitbar = $('unitbar'), coarse = window.matchMedia('(pointer: coarse)').matches;
   const phone = () => window.innerWidth < 760;
   function buildBar() { // from the unit_bar setting: lengths first, then metric/imperial pairs, by default
@@ -1221,33 +1156,27 @@ const UC = (() => {
     $('suggest').innerHTML = typedUnit ? [p.unit, ...p.cands].slice(0, 8).map((u, i) =>
       `<button type="button" data-sug="${esc(u.id)}" class="${i ? '' : 'on'}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join('') : '';
 
-    const top = list[0];
-    hero.disabled = !top;
-    hero.innerHTML = top ? `<span class="v">${num(top.show)}</span>${top.unit ? ` <span class="u">${esc(top.unit)}</span>` : ''}` : '<span class="v">?</span>';
-    hero.dataset.copy = top ? top.copy : '';
-    hero.dataset.copyUnit = top ? top.copyUnit : '';
-
     $('quad').innerHTML = list.slice(0, 4).map(r =>
       `<button type="button" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}"${r.note ? ` title="${esc(r.note)}"` : ''}>` +
       `<span class="v">${num(r.show)}</span>${r.unit ? ` <span class="u">${esc(r.unit)}</span>` : ''}` +
       `${r.short ? `<span class="e">${esc(r.short)}</span>` : ''}</button>`).join('');
-    const chips = us => us.length ? ' Or ' + us.slice(0, 6).map(u => `<button type="button" class="chip" data-unit="${u.id}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join(' ') : '';
     let st;
     switch (p.how) {
       case 'empty': st = `Showing 1 ${esc(p.unit.label)}. Type a number, with a unit or without.`; break;
       case 'pinned': st = `Read as ${esc(p.unit.name)}, the last unit you used. Type a unit after the number to change it.`; break;
       case 'implied': st = 'A fraction with no unit reads as inches.'; break;
-      case 'typed': st = p.ftin ? `Feet and inches: ${esc(UC.fmt(p.value))} in.` : esc(cap(p.unit.name)) + '.' + chips(p.cands); break;
-      case 'guess': st = `Read “${esc(p.unitText)}” as ${esc(p.unit.name)}.` + chips(p.cands); break;
+      case 'typed': st = p.ftin ? `Feet and inches: ${esc(UC.fmt(p.value))} in.` : esc(cap(p.unit.name)) + '.'; break;
+      case 'guess': st = `Read “${esc(p.unitText)}” as ${esc(p.unit.name)}.`; break;
       case 'badnum': st = `Can’t read “${esc(p.unitText)}” as a number.`; break;
       default: st = `No unit matches “${esc(p.unitText)}”. Try mm, in, ft, kg, lb, c, f, psi or nm.`;
     }
     const commaNote = p.comma && p.unit && !p.frac;
     if (commaNote) st = `Read as ${esc(UC.fmt(Math.abs(p.value), 12))}: ` + (p.comma === 'thousands'
       ? 'a comma before three digits groups thousands. Use a point for a decimal.' : 'the comma is taken as a decimal point.');
+    if (p.unit && !list.length) st = `${esc(p.q)} has no answer in other units.`;
     statusEl.innerHTML = st;
     statusEl.classList.toggle('bad', p.how === 'unknown' || p.how === 'badnum');
-    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum' || !!commaNote);
+    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum' || !!commaNote || (!!p.unit && !list.length));
     unitbar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.pin === uid));
 
     alsoHead.textContent = p.unit ? `${p.q} is also` : 'Nothing to convert yet';
@@ -1257,14 +1186,6 @@ const UC = (() => {
       `${r.note ? `<span class="n">${esc(r.note)}</span>` : ''}</button></li>`).join('') ||
       `<li class="none">${p.unit ? 'No other common units for this one.' : 'Fix the unit and the answers appear here.'}</li>`;
 
-    gridHead.textContent = `${p.ftin ? UC.fmt(p.value) : p.shown} read as other units`;
-    for (const c of pairs) {
-      const r = UC.rows({ value: p.value, unit: UC.unit(c.id), den, sig: S.digits })[0];
-      c.v.textContent = r.show; c.u.textContent = r.unit;
-      c.val.dataset.copy = r.copy; c.val.dataset.copyUnit = r.copyUnit;
-      c.el.classList.toggle('on', c.id === uid);
-    }
-    others.classList.toggle('quiet', p.how === 'typed' || p.how === 'guess');
     document.querySelectorAll('[data-den]').forEach(b => b.classList.toggle('on', +b.dataset.den === den));
     drawTape();
     paintSel(); fit();
@@ -1276,7 +1197,6 @@ const UC = (() => {
     return `Enter copies ${r.copy}.` + (r.copyUnit !== r.copy ? ` Shift+Enter copies ${r.copyUnit}.` : '');
   }
   function paintSel() {
-    hero.classList.toggle('sel', sel === 0 && list.length > 0);
     $('quad').querySelectorAll('button').forEach((b, i) => b.classList.toggle('sel', i === sel && !coarse));
     alsoEl.querySelectorAll('.row').forEach(b => b.classList.toggle('sel', +b.dataset.i === sel));
     if (!sayTimer) hintEl.textContent = hintText();
@@ -1287,13 +1207,12 @@ const UC = (() => {
     sayTimer = setTimeout(() => { sayTimer = 0; hintEl.textContent = hintText(); hintEl.classList.remove('need'); }, 1600);
   }
 
-  // keep both sides of the equation as large as their text allows
+  // keep the typed value as large as the box allows
   function measure() { const w = $('probe').getBoundingClientRect().width; if (w) charW = w / 2000; }
   function fit() {
     const max = window.innerWidth < 760 ? 32 : 44;
     const size = (box, chars, pad) => Math.max(20, Math.min(max, Math.floor((box.clientWidth - pad) / (Math.max(chars, 5) * charW))));
     field.style.fontSize = size(field, (ghost.textContent.length || input.value.length) + 0.5, 26) + 'px';
-    answer.style.fontSize = size(answer, hero.textContent.length + 0.5, 32) + 'px';
   }
 
   // tape edges: millimetres along the top, sixteenths of an inch along the bottom, drawn to one scale
@@ -1626,6 +1545,7 @@ const UC = (() => {
   function start(saved) {
     inputs[0].setAttribute('inputmode', coarse ? 'decimal' : 'text');
     buildUnits(); buildBar(); buildKeys(); applyLook();
+    if (!phone()) $('tips').open = true; // a phone starts with the tips folded away
     setText.value = UC.settings.text(S);
     if (saved && typeof saved.raw === 'string') input.value = saved.raw;
     measure(); render(); drawTape(); calShow(); readShared();
