@@ -12,10 +12,15 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <title>Fast Conversion</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=B612+Mono:wght@400;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/b612-mono-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-semi-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* fonts ship with the app: no trip to another server before the page can draw */
+@font-face { font-family: 'B612 Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/b612-mono-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'B612 Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/b612-mono-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/barlow-semi-condensed-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/barlow-semi-condensed-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/barlow-semi-condensed-latin-600-normal.woff2) format('woff2'); }
 :root {
   /* Layout: a full-width tape-yellow band holds one equation (what you type = the top answer).
      Below it, two ruled tables on paper: more answers for this unit, then the same number read as every other unit. */
@@ -1606,7 +1611,7 @@ const UC = (() => {
 
   function start(saved) {
     inputs[0].setAttribute('inputmode', coarse ? 'decimal' : 'text');
-    buildGrid(); buildUnits(); buildBar(); buildKeys(); applyLook();
+    buildUnits(); buildBar(); buildKeys(); applyLook();
     setText.value = UC.settings.text(S);
     if (saved && typeof saved.raw === 'string') input.value = saved.raw;
     measure(); render(); drawTape(); calShow(); readShared();
