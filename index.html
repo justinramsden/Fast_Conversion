@@ -264,8 +264,8 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   main { grid-template-columns: minmax(0, 1fr); }
   .ref { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 760px) {
-  /* phone: number pad, one-tap unit bar, and every answer for the unit packed above the keyboard */
+@media all {
+  /* one layout everywhere: unit bar, four answer tiles, then the rest of the answers */
   .band-in { padding: 18px 12px 18px; }
   .equals, .answer { display: none; }
   .quad { display: grid; }
@@ -292,6 +292,8 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .sub { min-height: 0; display: none; }
   .sub.need { display: block; padding-left: 8px; }
   .padkeys, .unitbar { display: flex; }
+  main { grid-template-columns: minmax(0, 1fr); }
+  .ref { grid-template-columns: minmax(0, 1fr); }
   .padkeys button[data-key="'"], .padkeys button[data-key='"'] { font: 700 22px/1 var(--font-num); }
   .padkeys button[data-key=" "] { font-size: 14px; padding: 0 1px; }
   .rows { margin-top: 0; border-top: 0; }
@@ -299,6 +301,26 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   .row .c { opacity: 1; }
   .others-head { padding-top: 4px; }
 }
+@media (min-width: 761px) {
+  /* wider screens: the same layout in a centred column, a little larger, every unit button in view */
+  .band-in { max-width: 760px; padding: 28px 24px 26px; }
+  main, .ref, .calfoot { max-width: 760px; }
+  .ref, .calfoot { padding-left: 24px; padding-right: 24px; }
+  main > section { padding: 0 24px; }
+  main > section:first-child { padding: 0 24px; }
+  .unitbar { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
+  .quad { gap: 8px; }
+  .quad button { min-height: 64px; padding: 8px 16px; }
+  .quad .v { font-size: 28px; }
+  .quad .u { font-size: 18px; }
+  .quad .e { font-size: 13px; }
+}
+/* a mouse and keyboard: no extra keys, and a reminder that Enter copies the marked answer */
+@media (hover: hover) and (pointer: fine) {
+  .padkeys { display: none !important; }
+  #hint { display: block; padding-left: 8px; }
+}
+.quad button.sel { box-shadow: inset 0 0 0 2px var(--tape-ink); }
 @media (max-width: 520px) {
   .cat { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 8px; }
   .cat-name { grid-column: 1 / -1; line-height: 22px; padding-left: 8px; }
@@ -373,7 +395,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   </section>
   <section class="units" aria-labelledby="unitsHead">
     <h2 id="unitsHead">All units</h2>
-    <p class="tip" style="margin-bottom:10px">Tap one to convert from it.</p>
+    <p class="tip" style="margin-bottom:10px">Pick one to convert from it.</p>
     <div id="unitList"></div>
   </section>
 </footer>
@@ -1157,6 +1179,7 @@ const UC = (() => {
   }
   function paintSel() {
     hero.classList.toggle('sel', sel === 0 && list.length > 0);
+    $('quad').querySelectorAll('button').forEach((b, i) => b.classList.toggle('sel', i === sel && !coarse));
     alsoEl.querySelectorAll('.row').forEach(b => b.classList.toggle('sel', +b.dataset.i === sel));
     if (!sayTimer) hintEl.textContent = hintText();
   }
@@ -1169,7 +1192,7 @@ const UC = (() => {
   // keep both sides of the equation as large as their text allows
   function measure() { const w = $('probe').getBoundingClientRect().width; if (w) charW = w / 2000; }
   function fit() {
-    const max = window.innerWidth < 760 ? 32 : 60;
+    const max = window.innerWidth < 760 ? 32 : 44;
     const size = (box, chars, pad) => Math.max(20, Math.min(max, Math.floor((box.clientWidth - pad) / (Math.max(chars, 5) * charW))));
     field.style.fontSize = size(field, (ghost.textContent.length || input.value.length) + 0.5, 26) + 'px';
     answer.style.fontSize = size(answer, hero.textContent.length + 0.5, 32) + 'px';
@@ -1307,7 +1330,7 @@ const UC = (() => {
   function copySel(withUnit) {
     const r = list[sel];
     if (!r) return;
-    copy(withUnit ? r.copyUnit : r.copy, sel === 0 ? hero : alsoEl.querySelector(`.row[data-i="${sel}"]`));
+    copy(withUnit ? r.copyUnit : r.copy, sel < 4 ? $('quad').children[sel] : alsoEl.querySelector(`.row[data-i="${sel}"]`));
   }
   function setUnit(id) {
     const u = UC.unit(id);
