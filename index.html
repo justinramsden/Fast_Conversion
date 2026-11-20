@@ -377,7 +377,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
     <h2 id="custHead">Customize with AI</h2>
     <p>Any AI chat (ChatGPT, Claude, Gemini) can set this app up for you: the unit buttons, the extra keys, which answers show first, even units of your own.</p>
     <ol class="cust-steps">
-      <li><button type="button" class="act" id="aiCopy">1&ensp;Copy AI instructions</button><span>Paste them into any AI chat, then say what you want changed.</span></li>
+      <li><button type="button" class="act" id="aiCopy">1&ensp;Copy AI instructions</button><span>Includes your current settings. Paste into any AI chat, then say what to change.</span></li>
       <li><button type="button" class="act" id="aiPaste">2&ensp;Paste AI answer</button><span>Copy the AI’s reply, come back and tap here. It applies at once.</span></li>
     </ol>
     <p class="set-msg" id="setMsg" aria-live="polite"></p>
@@ -1379,7 +1379,7 @@ const UC = (() => {
   }
   $('aiCopy').addEventListener('click', async () => {
     const ok = await writeClip(UC.settings.guide(UC.settings.text(S)));
-    note(ok ? 'Copied. Open any AI chat, paste, and say what you want changed. Then copy its answer and tap 2.'
+    note(ok ? 'Copied, with your current settings. Open any AI chat, paste, and say what to change. Then copy its answer and tap 2.'
       : 'This view blocked copying. Use the “Guide for AI” link below, or copy your settings and send them with it.', [], !ok);
   });
   $('aiPaste').addEventListener('click', async () => {
