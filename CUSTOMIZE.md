@@ -49,19 +49,22 @@ theme = auto
 Use these exact codes; they are case-sensitive (C is Celsius, c is not a code).
 - Length: mm (millimetres), cm (centimetres), m (metres), km (kilometres), um (micrometres), in (inches), thou (thousandths of an inch), ft (feet), yd (yards), mi (miles)
 - Temperature: C (degrees Celsius), F (degrees Fahrenheit), K (kelvin)
-- Weight: mg (milligrams), g (grams), kg (kilograms), t (tonnes), oz (ounces), lb (pounds), ton (US short tons)
+- Weight: mg (milligrams), g (grams), kg (kilograms), t (tonnes), oz (ounces), lb (pounds), st (stone), ton (US short tons)
 - Volume: mL (millilitres), L (litres), m3 (cubic metres), tsp (US teaspoons), tbsp (US tablespoons), floz (US fluid ounces), cup (US cups), pt (US pints), qt (US quarts), gal (US gallons), igal (imperial gallons), in3 (cubic inches), ft3 (cubic feet)
 - Torque: Nm (newton-metres), kgcm (kilogram-force centimetres), ftlb (foot-pounds), inlb (inch-pounds), ozin (ounce-inches)
-- Pressure: kPa (kilopascals), MPa (megapascals), bar (bar), psi (pounds per square inch), atm (atmospheres)
+- Pressure: kPa (kilopascals), MPa (megapascals), bar (bar), psi (pounds per square inch), atm (atmospheres), hPa (millibar), inHg (inches of mercury), mmHg (millimetres of mercury)
 - Speed: mm/s (millimetres per second), mm/min (millimetres per minute), m/min (metres per minute), m/s (metres per second), km/h (kilometres per hour), in/min (inches per minute), ft/min (feet per minute), mph (miles per hour), kn (knots)
 - Area: mm2 (square millimetres), cm2 (square centimetres), m2 (square metres), ha (hectares), in2 (square inches), ft2 (square feet), acre (acres)
 - Power: W (watts), kW (kilowatts), hp (horsepower)
 - Force: N (newtons), kgf (kilograms-force), lbf (pounds-force)
-- Angle: deg (degrees), rad (radians)
+- Angle: deg (degrees), rad (radians), rev (revolutions)
+- Time: ms (milliseconds), s (seconds), min (minutes), h (hours), d (days), wk (weeks)
+- Energy: J (joules), kJ (kilojoules), Wh (watt-hours), kWh (kilowatt-hours), kcal (food calories), BTU (British thermal units)
+- Fuel use: L/100km (litres per 100 km), mpg (miles per US gallon), mpgUK (miles per imperial gallon)
 
 ## Default answers
 What each unit shows when it has no `answers` line:
-- mm: in, in-frac, ft, ft-in, cm, thou, m
+- mm: in, in-frac, ft, ft-in, cm, thou, m, um
 - cm: in, in-frac, ft, ft-in, mm, m
 - m: ft, ft-in, in, yd, cm, mm
 - km: mi, m, ft, yd
@@ -80,6 +83,7 @@ What each unit shows when it has no `answers` line:
 - t: lb, ton, kg
 - oz: g, kg, lb
 - lb: kg, g, oz
+- st: kg, lb
 - ton: t, kg, lb
 - mL: floz, tsp, tbsp, cup, L
 - L: gal, igal, qt, cup, floz, mL
@@ -104,6 +108,9 @@ What each unit shows when it has no `answers` line:
 - bar: psi, kPa, atm
 - psi: bar, kPa, MPa
 - atm: psi, bar, kPa
+- hPa: kPa, inHg, psi
+- inHg: hPa, kPa, psi
+- mmHg: kPa, psi, inHg
 - mm/s: mm/min, in/min, m/min
 - mm/min: in/min, mm/s, m/min
 - m/min: ft/min, m/s, km/h
@@ -126,8 +133,24 @@ What each unit shows when it has no `answers` line:
 - N: lbf, kgf
 - kgf: N, lbf
 - lbf: N, kgf
-- deg: rad
-- rad: deg
+- deg: rad, rev
+- rad: deg, rev
+- rev: deg, rad
+- ms: s, min
+- s: min, ms, h
+- min: h, s, d
+- h: min, d, s
+- d: h, min, wk
+- wk: d, h
+- J: Wh, kcal, BTU
+- kJ: kcal, Wh, BTU
+- Wh: J, kJ, kWh
+- kWh: kJ, BTU, kcal
+- kcal: kJ, Wh, BTU
+- BTU: kJ, Wh, kcal
+- L/100km: mpg, mpgUK
+- mpg: L/100km, mpgUK
+- mpgUK: L/100km, mpg
 - typed-fraction: in, mm, cm, ft, ft-in, thou
 
 ## Examples
