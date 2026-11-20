@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Convert">
+<meta name="apple-mobile-web-app-title" content="Fast Conversion">
 <meta name="theme-color" content="#f2c92e">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Instant Unit Converter</title>
+<title>Fast Conversion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=B612+Mono:wght@400;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
@@ -345,7 +345,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 </style>
 </head>
 <body>
-<h1 class="vh">Instant Unit Converter</h1>
+<h1 class="vh">Fast Conversion</h1>
 <span id="probe" aria-hidden="true">00000000000000000000</span>
 
 <section class="band" aria-label="Convert a value">
@@ -470,7 +470,8 @@ const UC = (() => {
       ['cm', 'cm', 'centimetres', 1e-2, 'in in:frac ft ft:ftin mm m', 'cm centimeter centimeters centimetre centimetres'],
       ['m', 'm', 'metres', 1, 'ft ft:ftin in yd cm mm', 'm meter meters metre metres'],
       ['km', 'km', 'kilometres', 1e3, 'mi m ft yd', 'km kilometer kilometers kilometre kilometres'],
-      ['um', 'µm', 'micrometres', 1e-6, 'thou mm in', 'um micron microns micrometer micrometers micrometre micrometres'],
+      ['um', 'µm', 'micrometres', 1e-6, 'thou mm in nm', 'um micron microns micrometer micrometers micrometre micrometres'],
+      ['nm', 'nm', 'nanometres', 1e-9, 'um mm thou', 'nanometer nanometers nanometre nanometres ~nm'],
       ['in', 'in', 'inches', 0.0254, 'mm in:frac cm ft:ftin ft m thou', 'in " inch inches'],
       ['thou', 'thou', 'thousandths of an inch', 0.0000254, 'mm um in', 'thou thous mil mils'],
       ['ft', 'ft', 'feet', 0.3048, 'm cm mm in yd', "ft ' foot feet"],
@@ -598,12 +599,13 @@ const UC = (() => {
   const UNITS = [], BY = {}, ALIAS = new Map(), clashes = [];
   for (const [cat, list] of CATALOG) for (const [id, label, name, f, targets, aliases] of list) {
     const u = {
-      id, label, name, cat, targets: targets.split(' '), keys: aliases.split(' '),
+      id, label, name, cat, targets: targets.split(' '), keys: aliases.split(' ').map(k => k.replace(/^~/, '')),
+      soft: aliases.split(' ').filter(k => k[0] === '~').map(k => k.slice(1)), // names it shares with a more common unit
       to: typeof f === 'number' ? v => v * f : f.to,
       from: typeof f === 'number' ? b => b / f : f.from,
     };
     UNITS.push(u); BY[id] = u;
-    for (const k of u.keys) { if (ALIAS.has(k)) clashes.push(k); ALIAS.set(k, u); }
+    for (const k of u.keys) { if (u.soft.includes(k)) continue; if (ALIAS.has(k)) clashes.push(k); ALIAS.set(k, u); }
   }
   const COMMON = new Set(TABLE.flatMap(r => (r[1] + ' ' + r[2]).split(' ')));
 
@@ -685,7 +687,10 @@ const UC = (() => {
   function resolve(text) {
     const key = norm(text || '');
     if (!key) return { exact: null, cands: [] };
-    const exact = ALIAS.get(key) || null;
+    let exact = ALIAS.get(key) || null;
+    // a shared name goes to the less common unit only when that one is on the person's button bar and the usual one is not
+    const alt = UNITS.find(u => u.soft && u.soft.includes(key));
+    if (exact && alt && FAV.has(alt.id) && !FAV.has(exact.id)) exact = alt;
     const cands = UNITS.filter(u => u !== exact && u.keys.some(k => k.startsWith(key)));
     // best guess first: the unit's own short name starts with what was typed, then units from the main table
     const rank = u => (u.keys[0].startsWith(key) ? 2 : 0) + (FAV.has(u.id) ? 1 : 0) + (COMMON.has(u.id) ? 1 : 0);
@@ -821,7 +826,7 @@ const UC = (() => {
   function addUnit(id, n, of) {
     const b = BY[of];
     const u = {
-      id, label: id, name: `${id} (${fmt(n, 10)} ${b.label})`, cat: b.cat, custom: true, keys: [norm(id)],
+      id, label: id, name: `${id} (${fmt(n, 10)} ${b.label})`, cat: b.cat, custom: true, keys: [norm(id)], soft: [],
       to: v => b.to(v * n), from: x => b.from(x) / n,
     };
     u.base = [of, ...b.base];

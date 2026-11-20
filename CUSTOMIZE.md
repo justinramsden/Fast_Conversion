@@ -47,7 +47,7 @@ theme = auto
 
 ## Unit codes
 Use these exact codes; they are case-sensitive (C is Celsius, c is not a code).
-- Length: mm (millimetres), cm (centimetres), m (metres), km (kilometres), um (micrometres), in (inches), thou (thousandths of an inch), ft (feet), yd (yards), mi (miles)
+- Length: mm (millimetres), cm (centimetres), m (metres), km (kilometres), um (micrometres), nm (nanometres), in (inches), thou (thousandths of an inch), ft (feet), yd (yards), mi (miles)
 - Temperature: C (degrees Celsius), F (degrees Fahrenheit), K (kelvin)
 - Weight: mg (milligrams), g (grams), kg (kilograms), t (tonnes), oz (ounces), lb (pounds), st (stone), ton (US short tons)
 - Volume: mL (millilitres), L (litres), m3 (cubic metres), tsp (US teaspoons), tbsp (US tablespoons), floz (US fluid ounces), cup (US cups), pt (US pints), qt (US quarts), gal (US gallons), igal (imperial gallons), in3 (cubic inches), ft3 (cubic feet)
@@ -68,7 +68,8 @@ What each unit shows when it has no `answers` line:
 - cm: in, in-frac, ft, ft-in, mm, m
 - m: ft, ft-in, in, yd, cm, mm
 - km: mi, m, ft, yd
-- um: thou, mm, in
+- um: thou, mm, in, nm
+- nm: um, mm, thou
 - in: mm, in-frac, cm, ft-in, ft, m, thou
 - thou: mm, um, in
 - ft: m, cm, mm, in, yd

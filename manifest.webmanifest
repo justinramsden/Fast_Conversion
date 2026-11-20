@@ -1,6 +1,6 @@
 {
-  "name": "Instant Unit Converter",
-  "short_name": "Convert",
+  "name": "Fast Conversion",
+  "short_name": "Fast Conversion",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
