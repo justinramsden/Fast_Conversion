@@ -20,7 +20,7 @@ They copy your code block, tap "Paste AI answer" in the app, and the new setup a
 # How to edit: https://github.com/justinramsden/Fast_Conversion/blob/main/CUSTOMIZE.md
 start_unit = mm
 remember_unit = on
-unit_bar = mm cm in ft | C F | km mi | kg lb | g oz | m yd | L gal | mL floz | km/h mph | bar psi | Nm ftlb | m2 ft2
+unit_bar = mm cm m | thou in ft | C F | km mi | kg lb | g oz | L gal | mL floz | bar psi | Nm ftlb | m2 ft2
 keys = / space ' " ± C abc
 fraction = 1/64
 digits = 6
@@ -34,7 +34,7 @@ theme = auto
 |---|---|---|---|
 | `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |
 | `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |
-| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\|` separates groups, which get a thin divider between them | `mm cm in ft \| C F \| km mi \| kg lb \| g oz \| m yd \| L gal \| mL floz \| km/h mph \| bar psi \| Nm ftlb \| m2 ft2` |
+| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\|` separates groups, which get a thin divider between them | `mm cm m \| thou in ft \| C F \| km mi \| kg lb \| g oz \| L gal \| mL floz \| bar psi \| Nm ftlb \| m2 ft2` |
 | `keys` | Extra keys in a row above the phone's number pad, left to right (phones only). They add what the number pad lacks. | any of `/` (fractions), `space` (between whole number and fraction), `'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (switch to the letter keyboard and back); at most 8; `none` for no row | `/ space ' " ± C abc` |
 | `fraction` | Inch fractions round to the nearest | `1/16`, `1/32`, `1/64` | `1/64` |
 | `digits` | Significant digits in decimal answers | whole number 3 to 10 | `6` |
