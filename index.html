@@ -1320,21 +1320,35 @@ const UC = (() => {
       } // longer than the screen: no mark
     }
     // the unit names sit just past the mark (or at zero when there is none); numbers that would run into them are left out
-    const labelW = g.measureText('cm').width;
-    const labelX = markX == null ? 3 : (markX + 5 + labelW <= w ? markX + 5 : markX - labelW - 5);
-    const clear = (x, t) => x + g.measureText(t).width < labelX - 2 || x > labelX + labelW + 2;
+    // Each scale's unit name sits just past the mark (or at zero with no mark). A whole-number label it would
+    // cover is drawn inside it instead ("2 cm"), so no number goes missing.
+    function scale(unit, step, count, y) {
+      const nums = [];
+      for (let k = 1; k * count * step <= w; k++) nums.push({ x: k * count * step + 3, t: String(k) });
+      const at = lw => markX == null ? 3 : (markX + 5 + lw <= w ? markX + 5 : markX - lw - 5);
+      const hit = (n, lx, lw) => !(n.x + g.measureText(n.t).width < lx - 2 || n.x > lx + lw + 2);
+      let text = unit, lx = at(g.measureText(text).width);
+      const hidden = nums.filter(n => hit(n, lx, g.measureText(text).width));
+      if (hidden.length) {
+        text = hidden.map(n => n.t).join(' ') + ' ' + unit;
+        lx = at(g.measureText(text).width);
+      }
+      const lw = g.measureText(text).width;
+      g.globalAlpha = .6;
+      for (const n of nums) if (!hit(n, lx, lw)) g.fillText(n.t, n.x, y);
+      g.globalAlpha = markX == null ? .6 : .95;
+      g.fillText(text, lx, y);
+    }
     for (let i = 0; i * mm <= w; i++) {
       const x = snap(i * mm);
       g.globalAlpha = .42; g.fillRect(x, 0, 1, i % 10 === 0 ? 11 : i % 5 === 0 ? 7 : 4);
-      if (i % 10 === 0 && i && clear(x + 3, String(i / 10))) { g.globalAlpha = .6; g.fillText(String(i / 10), x + 3, 6); }
     }
     for (let j = 0; j * sixteenth <= w; j++) {
       const x = j * sixteenth, len = j % 16 === 0 ? 13 : j % 8 === 0 ? 9 : j % 4 === 0 ? 7 : j % 2 === 0 ? 5 : 3;
       g.globalAlpha = .42; g.fillRect(x, h - len, 1, len);
-      if (j % 16 === 0 && j && clear(x + 3, String(j / 16))) { g.globalAlpha = .6; g.fillText(String(j / 16), x + 3, h - 16); }
     }
-    g.globalAlpha = markX == null ? .6 : .95;
-    g.fillText('cm', labelX, 6); g.fillText('in', labelX, h - 16);
+    scale('cm', mm, 10, 6);
+    scale('in', sixteenth, 16, h - 16);
   }
 
   const cal = $('cal'), calRange = $('calRange'), calbar = $('calbar');
