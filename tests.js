@@ -40,6 +40,7 @@ eq('settings survive a round trip', UC.settings.text(UC.settings.parse(UC.settin
 eq('defaults survive a round trip', UC.settings.text(UC.settings.parse(UC.settings.text(S0), S0).s), UC.settings.text(S0));
 ks = UC.settings.parse('keypad_style = neon\nkeypad_order = sideways\nkeypad_colors = red blue', S0);
 eq('a retired keypad look falls back to the default', UC.settings.parse('keypad_style = blueprint', S0).s.keypad_style + UC.settings.parse('keypad_style = blueprint', S0).errors.length, 'flat0');
+eq('key hints: on by default, can be turned off, bad value reported', [S0.key_hints, UC.settings.parse('key_hints = off', S0).s.key_hints, UC.settings.parse('key_hints = maybe', S0).errors.length, /^key_hints = on$/m.test(UC.settings.text(S0))].join(), 'on,off,1,true');
 eq('bad keypad values are reported and left alone', [ks.errors.length, ks.s.keypad_style, ks.s.keypad_order, ks.s.keypad_colors.length].join(), '3,flat,phone,0');
 eq('every keypad style is offered to the AI guide', UC.settings.styles.every(k => UC.settings.guide('').includes('`' + k + '`')), true);
 UC.configure(S0);

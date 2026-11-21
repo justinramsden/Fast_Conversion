@@ -23,6 +23,7 @@ remember_unit = on
 unit_bar = mm cm m | thou in ft | C F | km mi | kg lb | g oz | L gal | mL floz | bar psi | Nm ftlb | m2 ft2
 keys = / space ' " ± C abc
 keypad = on
+key_hints = on
 keypad_order = phone
 keypad_style = flat
 keypad_colors = default
@@ -41,6 +42,7 @@ theme = auto
 | `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\|` separates groups, which get a thin divider between them | `mm cm m \| thou in ft \| C F \| km mi \| kg lb \| g oz \| L gal \| mL floz \| bar psi \| Nm ftlb \| m2 ft2` |
 | `keys` | The extra keys. On the built-in keypad they are a line above the digits, left to right (two lines when there are more than seven), and stay in the same place when the phone's keyboard is up. With the phone's own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone's keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space ' " ± C abc` |
 | `keypad` | The app's own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone's keyboard instead. | `on`, `off` | `on` |
+| `key_hints` | The small words under the extra keys on the keypad (fraction, ft, in, clear, keyboard). `off` leaves only the symbols | `on`, `off` | `on` |
 | `keypad_order` | Which digits are on the keypad's top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |
 | `keypad_style` | The keypad's look | `flat` (plain grey keys, like a phone keyboard), `pill` (round dark number keys under a row of yellow extra keys, like a phone calculator), `tile` (pale keys on tape yellow, matching the answer tiles) | `flat` |
 | `keypad_colors` | Their own keypad colours, used in place of the style's | `default`, or five hex colours in this order: keypad background, number keys, number text, extra keys, extra-key text. Example: `#10261a #1f4a33 #eafff2 #17382a #9be2b8` | `default` |
