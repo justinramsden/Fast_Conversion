@@ -102,6 +102,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .quad button:first-child { background: rgba(255, 255, 255, .62); }
 .quad .v { font: 700 20px/1.2 var(--font-num); font-variant-numeric: tabular-nums; }
 .quad .u { font: 600 15px/1.2 var(--font-ui); }
+.ts { display: inline-block; width: .3em; }
 .b612 .dp { margin-right: -.2em; }
 .b612 .row .dp { margin-right: -.26em; }
 .quad .e { display: block; font: 500 12px/1.2 var(--font-ui); opacity: .72; }
@@ -330,6 +331,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 }
 /* flat, the default look: plain grey keys in the phone's own type */
 [data-pad="flat"] .pad button { font-family: -apple-system, system-ui, sans-serif; font-weight: 400; box-shadow: 0 1px 0 var(--k-lo); }
+[data-pad="flat"] .pad [data-key="."] { padding-bottom: 20px; font-weight: 800; font-size: 44px; }
 .pad .s { font: 700 25px/1 var(--font-num); }
 .pad .d { font: 700 27px/1 var(--font-num); color: var(--k-fg); background: var(--k-bg); }
 .pad [data-act="clear"] { color: var(--c-fg); }
@@ -1130,7 +1132,7 @@ const UC = (() => {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // the number font leaves a wide gap after a decimal point; pull the next digit back in
-  const num = t => esc(t).replace(/\.(?=\d)/g, '<span class="dp">.</span>');
+  const num = t => esc(t).replace(/\.(?=\d)/g, '<span class="dp">.</span>').replace(/\u202f/g, '<span class="ts"></span>');   // thousands gap: a fixed width, whatever font draws it
 
   let pinned = 'mm', sel = 0, lastUnit = null, cur = null, list = [], sayTimer = 0, charW = 0.6, quadW = 0;
   let den = 64, S = null;
