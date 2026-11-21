@@ -304,13 +304,15 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   display: none; padding: 10px 10px 12px; background: var(--pad-bg);
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
   /* a keypad style is this set of values; styles.css holds the alternatives */
-  --pad-bg: #131210; --k-bg: #34322c; --k-fg: #f6f3e7; --f-bg: #1f1e1b; --f-fg: var(--tape);
-  --k-lo: #050504; --c-fg: #ff8672; --hit: var(--tape); --hit-fg: var(--tape-ink); --tick: var(--tape); --kr: 8px;
+  --pad-bg: #131210; --k-bg: #3b3934; --k-fg: #f6f3e7; --f-bg: var(--tape); --f-fg: var(--tape-ink);
+  --k-lo: transparent; --c-fg: #a3180a; --hit: #f6f3e7; --hit-fg: var(--tape-ink); --kr: 999px;
   --kh: 54px;
 }
 /* as tall as the screen allows, so band and keypad fill a phone without scrolling */
 @supports (height: 1svh) { .pad { --kh: clamp(46px, calc((100svh - 362px - env(safe-area-inset-top, 0px)) / 4), 60px); } }
 .padon .pad { display: block; }
+.rows .more.more { display: block; padding: 14px 16px; font-weight: 600; text-align: center; color: var(--tape); border: 0; }
+.pf [data-key=" "] { font-size: 13px; letter-spacing: -.3px; }
 .sys .pd { display: none; }   /* beside the phone's keyboard only the extra keys stay, in the same place */
 .pad-in { display: grid; gap: 8px; max-width: 520px; margin: 0 auto; }
 .pd, .pf { display: grid; gap: 6px; }
@@ -332,11 +334,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 .pad [data-key="."] { padding-bottom: 14px; font-size: 34px; }
 .pad small { display: block; margin-top: 3px; font: 600 12px/1 var(--font-ui); opacity: .72; }
 .pad .p { padding-top: 6px; font-size: 30px; line-height: .6; }   /* the prime marks sit high in their glyphs */
-/* the signature: every number sits under a graduation, like the numbers on a tape */
-.pad .n::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px; color: var(--tick);
-  background: linear-gradient(currentColor, currentColor) 50% 0 / 2px 8px no-repeat, linear-gradient(currentColor, currentColor) 25% 0 / 1px 4px no-repeat, linear-gradient(currentColor, currentColor) 75% 0 / 1px 4px no-repeat;
-}
 .padon:not(.sys) .field input { background: rgba(255, 255, 255, .46); border-bottom-color: var(--tape-ink); }
 /* the keypad's own caret, and the look of a value the next number will replace */
 .ghost u { flex: none; width: 3px; height: 1.05em; margin: 0 -1.5px; background: var(--tape-mark); border-radius: 1px; }
@@ -374,7 +371,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 }
 /* every button answers the finger at once: pressed on touch-down, eased back on release */
 .pad button.dn { color: var(--hit-fg); background: var(--hit); box-shadow: none; transform: translateY(2px); }
-.pad .n.dn::before { color: var(--tape-mark); }
 .unitbar button.dn, .padkeys button.dn { color: var(--tape); background: var(--tape-ink); }
 .unitbar button.dn { transform: scale(.94); }
 .quad button.dn { background: #fff; transform: scale(.97); }
@@ -884,7 +880,7 @@ const UC = (() => {
     unit_bar: [['mm', 'cm', 'm'], ['thou', 'in', 'ft'], ['C', 'F'], ['km', 'mi'], ['kg', 'lb'], ['g', 'oz'], ['L', 'gal'],
       ['mL', 'floz'], ['bar', 'psi'], ['Nm', 'ftlb'], ['m2', 'ft2']],
     keys: ['/', 'space', "'", '"', '±', 'C', 'abc'],
-    keypad: 'on', keypad_order: 'phone', keypad_style: 'panel', keypad_colors: [],
+    keypad: 'on', keypad_order: 'phone', keypad_style: 'pill', keypad_colors: [],
     fraction: 64, digits: 6, ruler: 'on', ruler_mark: 'on', theme: 'auto',
     units: {}, answers: {},
   };
@@ -892,8 +888,8 @@ const UC = (() => {
     '/': '/', slash: '/', space: 'space', spc: 'space', '␣': 'space', "'": "'", '′': "'", feet: "'", '"': '"', '″': '"', inches: '"',
     '±': '±', '+/-': '±', '+-': '±', neg: '±', minus: '±', '-': '±', c: 'C', clear: 'C', clr: 'C', abc: 'abc', keyboard: 'abc',
   };
-  // keypad looks. panel is built into the page; the others are blocks in styles.css, fetched only when chosen
-  const PAD_STYLES = { panel: 'dark machine-panel keys', tape: 'tape-measure yellow keys', blueprint: 'outlined keys on drafting blue' };
+  // keypad looks. pill is built into the page; the others are blocks in styles.css, fetched only when chosen
+  const PAD_STYLES = { pill: 'round dark number keys under a row of yellow extra keys, like a phone calculator', tile: 'pale keys on tape yellow, matching the answer tiles', flat: 'plain grey keys, like a phone keyboard' };
   const MODES = { 'in-frac': 'in:frac', 'in:frac': 'in:frac', 'ft-in': 'ft:ftin', 'ft:ftin': 'ft:ftin', 'lb-oz': 'lb:lboz', 'lb:lboz': 'lb:lboz' };
   const MODE_NAME = { 'in:frac': 'in-frac', 'ft:ftin': 'ft-in', 'lb:lboz': 'lb-oz' };
   const ONOFF = { on: 'on', yes: 'on', true: 'on', 1: 'on', off: 'off', no: 'off', false: 'off', 0: 'off' };
@@ -979,7 +975,8 @@ const UC = (() => {
       switch (key) {
         case 'start_unit': case 'default_unit': { const c = codeOf(value); if (c) s.start_unit = c; else bad(`"${value}" isn't a unit code`); break; }
         case 'keypad_order': { const v = { phone: 'phone', 123: 'phone', calculator: 'calculator', calc: 'calculator', 789: 'calculator' }[value.toLowerCase()]; if (v) s.keypad_order = v; else bad('use phone or calculator'); break; }
-        case 'keypad_style': { const v = value.toLowerCase(); if (PAD_STYLES[v]) s.keypad_style = v; else bad('use ' + Object.keys(PAD_STYLES).join(', ')); break; }
+        case 'keypad_style': { let v = value.toLowerCase(); if (/^(panel|tape|blueprint)$/.test(v)) v = 'pill';   // looks that were retired
+          if (PAD_STYLES[v]) s.keypad_style = v; else bad('use ' + Object.keys(PAD_STYLES).join(', ')); break; }
         case 'keypad_colors': {
           const c = /^(default|none)?$/i.test(value) ? [] : tokens(value).map(t => (t.match(/^#?([0-9a-f]{6}|[0-9a-f]{3})$/i) || [])[1]);
           if (!c.length || (c.length === 5 && c.every(Boolean))) s.keypad_colors = c.map(x => '#' + x.toLowerCase()); else bad('use default, or five hex colours like #1a1a1a');
@@ -1068,7 +1065,7 @@ const UC = (() => {
       '| `keys` | The extra keys. On the built-in keypad they are a line above the digits, left to right (two lines when there are more than seven), and stay in the same place when the phone\'s keyboard is up. With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
       '| `keypad` | The app\'s own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone\'s keyboard instead. | `on`, `off` | `on` |',
       '| `keypad_order` | Which digits are on the keypad\'s top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |',
-      '| `keypad_style` | The keypad\'s look | ' + Object.entries(PAD_STYLES).map(([k, d]) => '`' + k + '` (' + d + ')').join(', ') + ' | `panel` |',
+      '| `keypad_style` | The keypad\'s look | ' + Object.entries(PAD_STYLES).map(([k, d]) => '`' + k + '` (' + d + ')').join(', ') + ' | `pill` |',
       '| `keypad_colors` | Their own keypad colours, used in place of the style\'s | `default`, or five hex colours in this order: keypad background, number keys, number text, extra keys, extra-key text. Example: `#10261a #1f4a33 #eafff2 #17382a #9be2b8` | `default` |',
       '| `fraction` | Inch fractions round to the nearest | `1/16`, `1/32`, `1/64` | `1/64` |',
       '| `digits` | Significant digits in decimal answers | whole number 3 to 10 | `6` |',
@@ -1095,8 +1092,8 @@ const UC = (() => {
       'Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."',
       'Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`',
       '',
-      'Request: "Calculator-style keypad with the tape look."',
-      'Lines to change: `keypad_order = calculator` and `keypad_style = tape`',
+      'Request: "7 8 9 on the top row, and the yellow keypad."',
+      'Lines to change: `keypad_order = calculator` and `keypad_style = tile`',
       '',
       'Request: "I mostly cook. Temperatures and kitchen volumes first, start in °F."',
       'Lines to change: `unit_bar = F C | mL cup tbsp tsp | g oz | kg lb | L gal` and `start_unit = F`',
@@ -1218,7 +1215,7 @@ const UC = (() => {
   }
   function buildPad() { // digits in a phone's order or a calculator's, then . 0 and delete, as on a phone's number pad
     const fk = S.keys.includes('abc') ? S.keys : [...S.keys, 'abc'];
-    const digit = c => `<button type="button" class="d n" data-key="${c}">${c}</button>`;
+    const digit = c => `<button type="button" class="d" data-key="${c}">${c}</button>`;
     padEl.innerHTML = `<div class="pad-in"><div class="pf" style="--n:${fk.length > 7 ? Math.ceil(fk.length / 2) : fk.length}">` +
       fk.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123', 1)).join('') + '</div><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
       '<button type="button" class="d" data-key="." aria-label="Decimal point">.</button>' + digit(0) +
@@ -1301,7 +1298,8 @@ const UC = (() => {
     unitbar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.pin === uid));
 
     alsoHead.textContent = p.unit ? `${p.q} is also` : 'Nothing to convert yet';
-    alsoEl.innerHTML = list.slice(1).map((r, i) =>
+    // nothing typed yet, on the keypad: the space under it says what is further down
+    alsoEl.innerHTML = usePad() && p.how === 'empty' ? '<li class="none more">Scroll down here for more units and all the options.</li>' : list.slice(1).map((r, i) =>
       `<li><button type="button" class="row" data-i="${i + 1}" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}">` +
       `<span class="v">${num(r.show)}</span>${r.unit ? `<span class="u">${esc(r.unit)}</span>` : ''}<span class="c">copy</span>` +
       `${r.note ? `<span class="n">${esc(r.note)}</span>` : ''}</button></li>`).join('') ||
@@ -1634,7 +1632,7 @@ const UC = (() => {
     inputs[0].readOnly = own;   // read-only: a tap on the box can never bring up the phone's keyboard over the keypad
     inputs[0].setAttribute('inputmode', own ? 'none' : coarse ? 'decimal' : 'text');
     root.dataset.pad = S.keypad_style;
-    if (S.keypad_style !== 'panel' && !$('looks')) {
+    if (S.keypad_style !== 'pill' && !$('looks')) {
       const l = document.createElement('link'); l.id = 'looks'; l.rel = 'stylesheet'; l.href = 'styles.css'; document.head.appendChild(l);
     }
     ['--pad-bg', '--k-bg', '--k-fg', '--f-bg', '--f-fg'].forEach((v, i) => S.keypad_colors.length ? padEl.style.setProperty(v, S.keypad_colors[i]) : padEl.style.removeProperty(v));

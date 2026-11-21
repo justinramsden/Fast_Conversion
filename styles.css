@@ -1,30 +1,25 @@
 /* Fast Conversion: extra looks. The page fetches this file only when a setting asks for one of them;
-   the default look lives in index.html, so it costs nothing to anyone who never changes the style.
+   the default look (pill) lives in index.html, so it costs nothing to anyone who never changes the style.
 
    A keypad style is a block of values for the keypad's variables, plus any rules of its own:
      --pad-bg  the keypad's background        --k-lo   the shadow under a key
      --k-bg    number keys                    --c-fg   the C key's legend
      --k-fg    number legends                 --hit    a key while it is pressed
      --f-bg    extra keys                     --hit-fg its legend while pressed
-     --f-fg    extra-key legends              --tick   the graduation over each number
-     --kr      corner radius
+     --f-fg    extra-key legends              --kr     corner radius
    To add a style: write its block here, then add its name to PAD_STYLES in index.html. */
 
-/* tape: the number keys are the blade of a tape measure */
-[data-pad="tape"] .pad {
-  --pad-bg: #1a1808; --k-bg: #f2c92e; --k-fg: #1a1808; --f-bg: #2e2b22; --f-fg: #f6f3e7;
-  --k-lo: #7d6408; --c-fg: #ff8672; --hit: #1a1808; --hit-fg: #f2c92e; --tick: #1a1808; --kr: 3px;
+/* tile: the keypad carries on the yellow band; keys look like the answer tiles, extra keys like the unit buttons */
+[data-pad="tile"] .pad {
+  --pad-bg: #f2c92e; --k-bg: rgba(255, 255, 255, .36); --k-fg: #1a1808; --f-bg: transparent; --f-fg: #1a1808;
+  --k-lo: transparent; --c-fg: #a3180a; --hit: #1a1808; --hit-fg: #f2c92e; --kr: 8px;
 }
-[data-pad="tape"] .pf button { --k-lo: #050504; }
-[data-pad="tape"] .pad .n.dn::before { color: #f2c92e; }
+[data-pad="tile"] .pad button { box-shadow: none; }
+[data-pad="tile"] .pf button { border-radius: 999px; box-shadow: inset 0 0 0 1.5px #1a1808; }
 
-/* blueprint: outlined keys on drafting blue */
-[data-pad="blueprint"] .pad {
-  --pad-bg: #133b6e; --k-bg: transparent; --k-fg: #edf4ff; --f-bg: transparent; --f-fg: #a9d4ff;
-  --k-lo: transparent; --c-fg: #ffc2b8; --hit: #edf4ff; --hit-fg: #133b6e; --tick: #a9d4ff; --kr: 2px;
-  background-image: linear-gradient(rgba(237, 244, 255, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(237, 244, 255, .08) 1px, transparent 1px);
-  background-size: 14px 14px;
+/* flat: plain grey keys, like the phone's own keyboard */
+[data-pad="flat"] .pad {
+  --pad-bg: #2b2b2d; --k-bg: #6b6b6e; --k-fg: #fff; --f-bg: #464648; --f-fg: #fff;
+  --k-lo: #111; --c-fg: #ff9d8f; --hit: #9a9a9e; --hit-fg: #fff; --kr: 6px;
 }
-[data-pad="blueprint"] .pad button { font-weight: 400; box-shadow: inset 0 0 0 1.5px rgba(237, 244, 255, .8); }
-[data-pad="blueprint"] .pf button { box-shadow: inset 0 0 0 1px rgba(169, 212, 255, .65); }
-[data-pad="blueprint"] .pad button.dn { box-shadow: none; transform: none; }
+[data-pad="flat"] .pad button { font-family: -apple-system, system-ui, sans-serif; font-weight: 400; box-shadow: 0 1px 0 var(--k-lo); }

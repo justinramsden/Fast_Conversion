@@ -33,13 +33,14 @@ eq('0 mpg gives no fake 0 answer', top('0 mpg').ans === '0 mpg (imp)', false);
 eq('1e3 mm reads as 1000 mm', top('1e3 mm').value, 1000);
 // keypad settings
 const S0 = UC.settings.defaults();
-eq('keypad defaults', [S0.keypad, S0.keypad_order, S0.keypad_style, S0.keypad_colors.length].join(), 'on,phone,panel,0');
-let ks = UC.settings.parse('keypad_order = calculator\nkeypad_style = tape\nkeypad = off\nkeypad_colors = #102030 #405060 #fff #000000 #ABCDEF', S0);
-eq('keypad settings are read', [ks.s.keypad, ks.s.keypad_order, ks.s.keypad_style, ks.s.keypad_colors.join(' '), ks.errors.length].join('|'), 'off|calculator|tape|#102030 #405060 #fff #000000 #abcdef|0');
+eq('keypad defaults', [S0.keypad, S0.keypad_order, S0.keypad_style, S0.keypad_colors.length].join(), 'on,phone,pill,0');
+let ks = UC.settings.parse('keypad_order = calculator\nkeypad_style = tile\nkeypad = off\nkeypad_colors = #102030 #405060 #fff #000000 #ABCDEF', S0);
+eq('keypad settings are read', [ks.s.keypad, ks.s.keypad_order, ks.s.keypad_style, ks.s.keypad_colors.join(' '), ks.errors.length].join('|'), 'off|calculator|tile|#102030 #405060 #fff #000000 #abcdef|0');
 eq('settings survive a round trip', UC.settings.text(UC.settings.parse(UC.settings.text(ks.s), S0).s), UC.settings.text(ks.s));
 eq('defaults survive a round trip', UC.settings.text(UC.settings.parse(UC.settings.text(S0), S0).s), UC.settings.text(S0));
 ks = UC.settings.parse('keypad_style = neon\nkeypad_order = sideways\nkeypad_colors = red blue', S0);
-eq('bad keypad values are reported and left alone', [ks.errors.length, ks.s.keypad_style, ks.s.keypad_order, ks.s.keypad_colors.length].join(), '3,panel,phone,0');
+eq('a retired keypad look falls back to the default', UC.settings.parse('keypad_style = blueprint', S0).s.keypad_style + UC.settings.parse('keypad_style = blueprint', S0).errors.length, 'pill0');
+eq('bad keypad values are reported and left alone', [ks.errors.length, ks.s.keypad_style, ks.s.keypad_order, ks.s.keypad_colors.length].join(), '3,pill,phone,0');
 eq('every keypad style is offered to the AI guide', UC.settings.styles.every(k => UC.settings.guide('').includes('`' + k + '`')), true);
 UC.configure(S0);
 // speed: the engine part of a keystroke (budget for the whole keystroke is 10 ms)
