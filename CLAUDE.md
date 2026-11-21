@@ -27,4 +27,6 @@ On touch screens the app types through its own keypad (`#pad`), so it is ready t
 
 ## Tests
 Run `node tests.js` after every change and report the result. All tests must pass before committing.
-After changing the page, rebuild the claude.ai copy from this repo and republish it (the repo is the source).
+For anything that touches the page, also run `sh checks/run.sh`: it runs the engine tests, then the browser checks in `checks/` (Playwright driving Chrome as a touch phone and as a desktop) and the per-key timing. `pad.py` prints a pass count; the others print their findings and end with an empty error list. They are checks in an emulated phone, not proof on a real one.
+After changing the page, rebuild the claude.ai copy with `python3 tools/make_artifact.py <folder>` and republish that folder's index.html and styles.css (the repo is the source).
+Nothing in `checks/` or `tools/` is requested by the app, so they cost no load time. Keep them out of FILES in sw.js.

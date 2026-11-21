@@ -1,0 +1,41 @@
+import sys, asyncio
+from playwright.async_api import async_playwright
+src = sys.argv[1]
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
+        ctx = await b.new_context(viewport={'width': 1280, 'height': 900}, permissions=['clipboard-read', 'clipboard-write'])
+        pg = await ctx.new_page(); errs = []
+        pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.goto('file://' + src); await pg.wait_for_timeout(600)
+        val = lambda: pg.eval_on_selector('#q', 'e => e.value')
+        hero = lambda: pg.eval_on_selector('.quad button', 'b=>b.textContent.trim()')
+        clip = lambda: pg.evaluate('navigator.clipboard.readText()')
+        out = []
+        async def step(name, want, got): out.append(('ok  ' if want == got else 'FAIL') + f' {name}: {got!r}' + ('' if want == got else f' (want {want!r})'))
+        await pg.keyboard.type('6.6'); await step('type on load', '6.6', await val())
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100); await step('Enter copies top', '0.259843', await clip())
+        await pg.keyboard.type('12'); await step('digit after copy replaces', '12', await val())
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
+        await pg.keyboard.type('cm'); await step('letters after copy append', '12cm', await val()); await step('hero', '4.72441 in', (await hero()).replace('\n', ' '))
+        await pg.keyboard.press('Shift+Enter'); await pg.wait_for_timeout(100); await step('Shift+Enter with unit', '4.72441 in', await clip())
+        await pg.keyboard.type('mm'); await step('unit after copy swaps only the unit', '12mm', await val())
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
+        await pg.keyboard.type('>cm'); await step('> after copy carries on', '12mm>cm', await val()); await step('target on top', '1.2 cm', (await hero()).replace('\n', ' '))
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
+        await pg.keyboard.type('7'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
+        await pg.keyboard.type('"'); await step('quote mark appends', '7"', await val())
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
+        await pg.keyboard.type('3/8'); await step('fraction replaces then continues', '3/8', await val()); await step('hero 3/8', '0.375 in', (await hero()).replace('\n', ' '))
+        await pg.mouse.click(1262, 600); await pg.keyboard.type('25'); await step('type from page body, digit replaces', '25', await val())
+        await pg.click('#unitList [data-unit="lb"]'); await step('click unit switches', '25 lb', await val())
+        await pg.keyboard.type('30'); await step('then bare number', '30', await val()); await step('reads as pinned lb', '13.6078 kg', (await hero()).replace('\n', ' '))
+        await pg.keyboard.press('ArrowDown'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100); await step('arrow then Enter copies row 2', '13607.8', await clip())
+        await pg.keyboard.type('40'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100); await step('mark stays on row 2', '18143.7', await clip())
+        await pg.click('[data-pin="psi"]'); await pg.keyboard.type('40'); await pg.click('.quad button'); await pg.wait_for_timeout(100); await step('click table value copies', '2.7579', await clip())
+        await pg.keyboard.press('Escape'); await step('Esc clears', '', await val())
+        await pg.mouse.click(1262, 600); await pg.keyboard.type('thou'); await step('unit alone from page body', 'thou', await val())
+        st = await pg.evaluate("localStorage.getItem('uc-unit')"); await step('last unit remembered', 'thou', st)
+        print('\n'.join(out)); print('page errors:', errs)
+        await b.close()
+asyncio.run(main())
