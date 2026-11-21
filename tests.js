@@ -43,6 +43,11 @@ eq('a retired keypad look falls back to the default', UC.settings.parse('keypad_
 eq('key hints: on by default, can be turned off, bad value reported', [S0.key_hints, UC.settings.parse('key_hints = off', S0).s.key_hints, UC.settings.parse('key_hints = maybe', S0).errors.length, /^key_hints = on$/m.test(UC.settings.text(S0))].join(), 'on,off,1,true');
 eq('bad keypad values are reported and left alone', [ks.errors.length, ks.s.keypad_style, ks.s.keypad_order, ks.s.keypad_colors.length].join(), '3,flat,phone,0');
 eq('every keypad style is offered to the AI guide', UC.settings.styles.every(k => UC.settings.guide('').includes('`' + k + '`')), true);
+const yr = UC.rows(UC.parse('1 yr')).map(r => r.unit + '=' + r.show).join(' ');
+eq('a year converts to days, weeks and hours', yr, 'd=365.25 wk=52.1786 h=8766');
+eq('"2 years" and "2 yrs" read as years', [UC.parse('2 years').unit.id, UC.parse('2 yrs').unit.id].join(), 'yr,yr');
+eq('"3 y" still guesses yards, as before', UC.parse('3 y').unit.id, 'yd');
+eq('"3 ye" guesses years', UC.parse('3 ye').unit.id, 'yr');
 UC.configure(S0);
 // speed: the engine part of a keystroke (budget for the whole keystroke is 10 ms)
 const t0 = process.hrtime.bigint(); for (let i = 0; i < 2000; i++) top('1 3/8 in to mm');

@@ -68,7 +68,7 @@ Use these exact codes; they are case-sensitive (C is Celsius, c is not a code).
 - Power: W (watts), kW (kilowatts), hp (horsepower)
 - Force: N (newtons), kgf (kilograms-force), lbf (pounds-force)
 - Angle: deg (degrees), rad (radians), rev (revolutions)
-- Time: ms (milliseconds), s (seconds), min (minutes), h (hours), d (days), wk (weeks)
+- Time: ms (milliseconds), s (seconds), min (minutes), h (hours), d (days), wk (weeks), yr (years)
 - Energy: J (joules), kJ (kilojoules), Wh (watt-hours), kWh (kilowatt-hours), kcal (food calories), BTU (British thermal units)
 - Fuel use: L/100km (litres per 100 km), mpg (miles per US gallon), mpgUK (miles per imperial gallon)
 
@@ -152,7 +152,8 @@ What each unit shows when it has no `answers` line:
 - min: h, s, d
 - h: min, d, s
 - d: h, min, wk
-- wk: d, h
+- wk: d, h, yr
+- yr: d, wk, h
 - J: Wh, kcal, BTU
 - kJ: kcal, Wh, BTU
 - Wh: J, kJ, kWh

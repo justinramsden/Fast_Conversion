@@ -614,7 +614,8 @@ const UC = (() => {
       ['min', 'min', 'minutes', 60, 'h s d', 'min mins minute minutes'],
       ['h', 'h', 'hours', 3600, 'min d s', 'h hr hrs hour hours'],
       ['d', 'd', 'days', 86400, 'h min wk', 'd day days'],
-      ['wk', 'wk', 'weeks', 604800, 'd h', 'wk wks week weeks'],
+      ['wk', 'wk', 'weeks', 604800, 'd h yr', 'wk wks week weeks'],
+      ['yr', 'yr', 'years', 31557600, 'd wk h', 'yr yrs year years annum'],   // the average year, leap years included
     ]],
     ['Energy', [ // base: joule
       ['J', 'J', 'joules', 1, 'Wh kcal BTU', 'j joule joules'],
