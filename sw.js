@@ -1,7 +1,7 @@
 // Opens instantly from this phone's copy, with or without signal. A newer version, if there is one,
 // downloads in the background and is used the next time the app opens.
-const CACHE = 'convert-v3';
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png',
+const CACHE = 'convert-v4';
+const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'styles.css',
   'fonts/b612-mono-latin-400-normal.woff2', 'fonts/b612-mono-latin-700-normal.woff2',
   'fonts/barlow-semi-condensed-latin-400-normal.woff2', 'fonts/barlow-semi-condensed-latin-500-normal.woff2',
   'fonts/barlow-semi-condensed-latin-600-normal.woff2'];

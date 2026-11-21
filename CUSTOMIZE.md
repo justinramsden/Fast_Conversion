@@ -22,6 +22,10 @@ start_unit = mm
 remember_unit = on
 unit_bar = mm cm m | thou in ft | C F | km mi | kg lb | g oz | L gal | mL floz | bar psi | Nm ftlb | m2 ft2
 keys = / space ' " ± C abc
+keypad = on
+keypad_order = phone
+keypad_style = panel
+keypad_colors = default
 fraction = 1/64
 digits = 6
 ruler = on
@@ -35,7 +39,11 @@ theme = auto
 | `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |
 | `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |
 | `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\|` separates groups, which get a thin divider between them | `mm cm m \| thou in ft \| C F \| km mi \| kg lb \| g oz \| L gal \| mL floz \| bar psi \| Nm ftlb \| m2 ft2` |
-| `keys` | Extra keys in a row above the phone's number pad, left to right (phones only). They add what the number pad lacks. | any of `/` (fractions), `space` (between whole number and fraction), `'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (switch to the letter keyboard and back); at most 8; `none` for no row | `/ space ' " ± C abc` |
+| `keys` | The extra keys. On the built-in keypad they fill the block to the right of the digits, two per row, left to right. With the phone's own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone's keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space ' " ± C abc` |
+| `keypad` | The app's own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone's keyboard instead. | `on`, `off` | `on` |
+| `keypad_order` | Which digits are on the keypad's top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |
+| `keypad_style` | The keypad's look | `panel` (dark machine-panel keys), `tape` (tape-measure yellow keys), `blueprint` (outlined keys on drafting blue) | `panel` |
+| `keypad_colors` | Their own keypad colours, used in place of the style's | `default`, or five hex colours in this order: keypad background, number keys, number text, extra keys, extra-key text. Example: `#10261a #1f4a33 #eafff2 #17382a #9be2b8` | `default` |
 | `fraction` | Inch fractions round to the nearest | `1/16`, `1/32`, `1/64` | `1/64` |
 | `digits` | Significant digits in decimal answers | whole number 3 to 10 | `6` |
 | `ruler` | Real-size ruler along the top (cm) and bottom (inches) of the yellow band | `on`, `off` | `on` |
@@ -160,6 +168,9 @@ Lines to change: `fraction = 1/16` and add `answers.mm = in-frac, in, ft-in, cm`
 
 Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."
 Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`
+
+Request: "Calculator-style keypad with the tape look."
+Lines to change: `keypad_order = calculator` and `keypad_style = tape`
 
 Request: "I mostly cook. Temperatures and kitchen volumes first, start in °F."
 Lines to change: `unit_bar = F C | mL cup tbsp tsp | g oz | kg lb | L gal` and `start_unit = F`

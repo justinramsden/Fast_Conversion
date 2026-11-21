@@ -53,6 +53,7 @@
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.45 var(--font-ui); }
 button { font: inherit; color: inherit; }
+button, summary, a, input { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 #probe { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: nowrap; font: 700 100px var(--font-num); }
@@ -71,7 +72,7 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 }
 .field { grid-area: field; position: relative; font: 700 60px/1.15 var(--font-num); }
 .field input {
-  display: block; width: 100%; margin: 0; padding: 6px 12px;
+  display: block; width: 100%; height: var(--fh, 52px); margin: 0; padding: 0 12px; /* a fixed height: nothing below shifts as the text shrinks to fit */
   font: inherit; color: var(--tape-ink); caret-color: var(--tape-mark);
   background: rgba(255, 255, 255, .26); border: 0; border-radius: 4px 4px 0 0;
   border-bottom: 3px solid color-mix(in srgb, var(--tape-ink) 40%, transparent);
@@ -82,22 +83,15 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .field input::placeholder { color: color-mix(in srgb, var(--tape-ink) 42%, transparent); opacity: 1; }
 .field input::selection { background: var(--tape-ink); color: var(--tape); }
 .ghost {
-  position: absolute; inset: 0; display: flex; align-items: center; padding: 6px 12px;
+  position: absolute; inset: 0; display: flex; align-items: center; padding: 0 12px;
   border-bottom: 3px solid transparent; white-space: pre; overflow: hidden; pointer-events: none;
 }
 .ghost i { visibility: hidden; font-style: normal; }
 .ghost b.done { font-weight: 700; color: color-mix(in srgb, var(--tape-ink) 40%, transparent); }
 .ghost b { font-weight: 400; color: color-mix(in srgb, var(--tape-ink) 48%, transparent); }
- content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px; background: var(--tape-mark); }
 .sub { margin: 0; min-height: 2.7em; font: 500 15px/1.35 var(--font-ui); color: color-mix(in srgb, var(--tape-ink) 82%, transparent); }
 #status { grid-area: status; padding-left: 12px; }
-#status.bad { color: var(--tape-ink); font-weight: 600; }
 #hint { grid-area: hint; padding-left: 18px; }
-.chip {
-  margin: 0 1px; padding: 0 8px; font: 500 14px/1.5 var(--font-ui); color: var(--tape-ink);
-  background: transparent; border: 1.5px solid var(--tape-ink); border-radius: 999px; cursor: pointer;
-}
-.chip:hover { background: var(--tape-ink); color: var(--tape); }
 
 .padkeys, .unitbar, .quad { display: none; }
 .quad { grid-area: quad; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
@@ -147,8 +141,8 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
 .row .u { font: 500 16px/1.25 var(--font-ui); color: var(--mute); }
 .row .c { margin-left: auto; font-size: 13px; color: var(--mute); opacity: 0; }
 .row .n { flex-basis: 100%; font-size: 14px; color: var(--mute); }
-.row:hover, .row.sel { background: var(--wash); }
-.row:hover .c, .row.sel .c, .row:focus-visible .c { opacity: 1; }
+.row.sel { background: var(--wash); }
+.row.sel .c, .row:focus-visible .c { opacity: 1; }
 .row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mark); }
 
 .tip { margin: 0; font-size: 14px; color: var(--mute); }
@@ -183,7 +177,6 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
   min-height: 48px; padding: 8px 16px; text-align: left; font: 600 17px/1.2 var(--font-ui); cursor: pointer;
   color: var(--paper); background: var(--ink); border: 0; border-radius: 8px;
 }
-.act:hover { background: color-mix(in srgb, var(--ink) 85%, var(--mark)); }
 .set-msg { min-height: 1.4em; color: var(--ink); font-weight: 500; }
 .set-msg.bad { color: var(--mark); }
 .set-msg ul { margin: 6px 0 0; padding-left: 20px; font-weight: 400; }
@@ -244,15 +237,10 @@ h2 { margin: 0; font: 600 17px/1.3 var(--font-ui); text-wrap: balance; }
 .ways dt, .ways dd { margin: 0; }
 .try, kbd { font: 400 13px/1.5 var(--font-num); color: var(--ink); }
 .try { padding: 1px 7px; background: none; border: 1px solid var(--rule); border-radius: 3px; cursor: pointer; white-space: nowrap; }
-.try:hover { border-color: var(--ink); }
 kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; }
 .units b { font-weight: 600; color: var(--ink); }
 .units button { padding: 0 3px; background: none; border: 0; color: var(--mute); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
-.units button:hover { color: var(--ink); }
 
-@media (prefers-reduced-motion: no-preference) {
-  .row, .chip { transition: background-color .12s; }
-}
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); }
   .ref { grid-template-columns: minmax(0, 1fr); }
@@ -311,7 +299,90 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   #hint { display: block; padding-left: 8px; }
 }
 .quad button.sel { box-shadow: inset 0 0 0 2px var(--tape-ink); }
-@media (max-width: 520px) {
+/* ── The keypad (touch screens): digits where a phone has them, the extra keys beside them ── */
+.pad {
+  display: none; padding: 10px 10px 12px; background: var(--pad-bg);
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  /* a keypad style is this set of values; styles.css holds the alternatives */
+  --pad-bg: #131210; --k-bg: #34322c; --k-fg: #f6f3e7; --f-bg: #1f1e1b; --f-fg: var(--tape);
+  --k-lo: #050504; --c-fg: #ff8672; --hit: var(--tape); --hit-fg: var(--tape-ink); --tick: var(--tape); --kr: 8px;
+  --kh: 54px;
+}
+/* as tall as the screen allows, so band and keypad fill a phone without scrolling */
+@supports (height: 1svh) { .pad { --kh: clamp(46px, calc((100svh - 310px - env(safe-area-inset-top, 0px)) / 4), 60px); } }
+.padon:not(.sys) .pad { display: block; }
+.pad-in { display: grid; grid-template-columns: 17fr 10fr; gap: 10px; max-width: 520px; margin: 0 auto; }
+.pd, .pf { display: grid; gap: 6px; }
+.pd { grid-template-columns: repeat(3, 1fr); grid-auto-rows: var(--kh); }
+.pf { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
+.pf button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.pad button {
+  position: relative; display: grid; place-items: center; align-content: center; min-width: 0; padding: 0; cursor: pointer;
+  font: 600 18px/1 var(--font-ui); color: var(--f-fg); background: var(--f-bg);
+  border: 0; border-radius: var(--kr); box-shadow: 0 2px 0 var(--k-lo), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.pad .s { font: 700 25px/1 var(--font-num); }
+.pad .d { font: 700 27px/1 var(--font-num); color: var(--k-fg); background: var(--k-bg); }
+.pad [data-act="clear"] { color: var(--c-fg); }
+.pad [data-key="."] { padding-bottom: 14px; font-size: 34px; }
+.pad small { display: block; margin-top: 3px; font: 600 12px/1 var(--font-ui); opacity: .72; }
+.pad .p { padding-top: 6px; font-size: 30px; line-height: .6; }   /* the prime marks sit high in their glyphs */
+.pf small.w { display: none; }
+.pf button:last-child:nth-child(odd) small.w { display: block; }
+/* the signature: every number sits under a graduation, like the numbers on a tape */
+.pad .n::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px; color: var(--tick);
+  background: linear-gradient(currentColor, currentColor) 50% 0 / 2px 8px no-repeat, linear-gradient(currentColor, currentColor) 25% 0 / 1px 4px no-repeat, linear-gradient(currentColor, currentColor) 75% 0 / 1px 4px no-repeat;
+}
+.padon:not(.sys) .field input { background: rgba(255, 255, 255, .46); border-bottom-color: var(--tape-ink); }
+/* the keypad's own caret, and the look of a value the next number will replace */
+.ghost u { flex: none; width: 3px; height: 1.05em; margin: 0 -1.5px; background: var(--tape-mark); border-radius: 1px; }
+.ghost i.all { visibility: visible; color: var(--tape); background: var(--tape-ink); }
+.ghost i.all + u { display: none; }
+@keyframes blink { 50% { opacity: 0; } }
+.quad .msg { grid-column: 1 / -1; align-self: center; margin: 0; padding: 4px 10px; font: 600 15px/1.35 var(--font-ui); }
+/* with the keypad underneath, nothing above it may change height: fewer than four answers share the same space */
+.padon .quad { grid-template-rows: 48px 48px; }
+.padon .quad button { min-height: 0; white-space: nowrap; overflow: hidden; }
+.padon .quad .msg, .padon .quad button:only-child { grid-row: 1 / span 2; }
+.padon .quad button:only-child, .padon .quad button:first-child:nth-last-child(2),
+.padon .quad button:nth-child(2):last-child, .padon .quad button:nth-child(3):last-child { grid-column: 1 / -1; }
+.calnote.padset { display: none; }
+.touch .calnote.padset { display: flex; }
+#padStyles { display: contents; }
+@media (min-width: 761px) {
+  .field { --fh: 66px; }
+  .padon .quad { grid-template-rows: 64px 64px; }
+}
+@media (pointer: coarse) {
+  /* "Copied" pops over the band's lower edge, so nothing under the finger moves */
+  #hint {
+    position: absolute; left: 50%; bottom: 2px; z-index: 2; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 3px 14px;
+    font-weight: 600; color: var(--tape); background: var(--tape-ink); border-radius: 999px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+  }
+}
+@media (hover: hover) {
+  .row:hover { background: var(--wash); }
+  .row:hover .c { opacity: 1; }
+  .act:hover { background: color-mix(in srgb, var(--ink) 85%, var(--mark)); }
+  .try:hover { border-color: var(--ink); }
+  .units button:hover { color: var(--ink); }
+}
+/* every button answers the finger at once: pressed on touch-down, eased back on release */
+.pad button.dn { color: var(--hit-fg); background: var(--hit); box-shadow: none; transform: translateY(2px); }
+.pad .n.dn::before { color: var(--tape-mark); }
+.unitbar button.dn, .padkeys button.dn { color: var(--tape); background: var(--tape-ink); }
+.unitbar button.dn { transform: scale(.94); }
+.quad button.dn { background: #fff; transform: scale(.97); }
+.row.dn { background: color-mix(in srgb, var(--ink) 16%, var(--paper)); }
+.try.dn, .units button.dn { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+.act.dn, .calrow button.dn, .offer button.dn, .qr-x.dn { transform: scale(.96); filter: brightness(1.3); }
+.tips summary.dn { opacity: .55; }
+@media (prefers-reduced-motion: no-preference) {
+  .row, .pad button, .unitbar button, .padkeys button, .quad button, .try, .units button, .act { transition: background-color .16s, color .16s, transform .16s; }
+  .dn.dn { transition: none; }
+  .ghost u { animation: blink 1.1s steps(1) infinite; }
 }
 </style>
 </head>
@@ -325,7 +396,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
     <div class="eq">
       <div class="field" id="field">
         <label class="vh" for="q">Value to convert, with or without a unit</label>
-        <input id="q" class="qin" type="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" autofocus>
+        <input id="q" class="qin" type="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
         <input id="qa" class="qin" type="text" inputmode="text" placeholder="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Value to convert, with or without a unit" hidden>
         <div class="ghost" id="ghost" aria-hidden="true"></div>
       </div>
@@ -339,6 +410,8 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
     </div>
   </div>
 </section>
+
+<div class="pad" id="pad" role="group" aria-label="Keypad"></div>
 
 <main>
   <section aria-labelledby="alsoHead">
@@ -379,7 +452,7 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 <div class="calfoot">
   <section class="cust" id="customize" aria-labelledby="custHead">
     <h2 id="custHead">Customize with AI</h2>
-    <p>Any AI chat (ChatGPT, Claude, Gemini) can set this app up for you: the unit buttons, the extra keys, which answers show first, even units of your own.</p>
+    <p>Any AI chat (ChatGPT, Claude, Gemini) can set this app up for you: the unit buttons, the keypad and its look, which answers show first, even units of your own.</p>
     <ol class="cust-steps">
       <li><button type="button" class="act" id="aiCopy">1&ensp;Copy AI instructions</button><span>Includes your current settings. Paste into any AI chat, then say what to change.</span></li>
       <li><button type="button" class="act" id="aiPaste">2&ensp;Paste AI answer</button><span>Copy the AI’s reply, come back and tap here. It applies at once.</span></li>
@@ -391,6 +464,10 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   </section>
   <p class="calnote" role="group" aria-label="Fraction precision"><span>Fractions to the nearest</span>
     <button type="button" class="try den" data-den="16">1/16</button><button type="button" class="try den" data-den="32">1/32</button><button type="button" class="try den" data-den="64">1/64</button></p>
+  <p class="calnote padset" role="group" aria-label="Keypad"><span>Keypad</span>
+    <button type="button" class="try den" data-set="keypad = on">Built-in</button><button type="button" class="try den" data-set="keypad = off">Phone keyboard</button>
+    <button type="button" class="try den" data-set="keypad_order = phone">1 2 3 on top</button><button type="button" class="try den" data-set="keypad_order = calculator">7 8 9 on top</button></p>
+  <p class="calnote padset" role="group" aria-label="Keypad look"><span>Keypad look</span> <span id="padStyles"></span></p>
   <p class="calnote"><button type="button" class="try" id="calOpen">Ruler size</button> <span id="calStatus"></span></p>
   <p class="calnote"><button type="button" class="try" id="qrOpen">Share with QR code</button> <span>Give someone the fastest converter you know. One scan and it’s theirs: free, no ads, no sign-up.</span></p>
 </div>
@@ -804,6 +881,7 @@ const UC = (() => {
     unit_bar: [['mm', 'cm', 'm'], ['thou', 'in', 'ft'], ['C', 'F'], ['km', 'mi'], ['kg', 'lb'], ['g', 'oz'], ['L', 'gal'],
       ['mL', 'floz'], ['bar', 'psi'], ['Nm', 'ftlb'], ['m2', 'ft2']],
     keys: ['/', 'space', "'", '"', '±', 'C', 'abc'],
+    keypad: 'on', keypad_order: 'phone', keypad_style: 'panel', keypad_colors: [],
     fraction: 64, digits: 6, ruler: 'on', ruler_mark: 'on', theme: 'auto',
     units: {}, answers: {},
   };
@@ -811,10 +889,12 @@ const UC = (() => {
     '/': '/', slash: '/', space: 'space', spc: 'space', '␣': 'space', "'": "'", '′': "'", feet: "'", '"': '"', '″': '"', inches: '"',
     '±': '±', '+/-': '±', '+-': '±', neg: '±', minus: '±', '-': '±', c: 'C', clear: 'C', clr: 'C', abc: 'abc', keyboard: 'abc',
   };
+  // keypad looks. panel is built into the page; the others are blocks in styles.css, fetched only when chosen
+  const PAD_STYLES = { panel: 'dark machine-panel keys', tape: 'tape-measure yellow keys', blueprint: 'outlined keys on drafting blue' };
   const MODES = { 'in-frac': 'in:frac', 'in:frac': 'in:frac', 'ft-in': 'ft:ftin', 'ft:ftin': 'ft:ftin', 'lb-oz': 'lb:lboz', 'lb:lboz': 'lb:lboz' };
   const MODE_NAME = { 'in:frac': 'in-frac', 'ft:ftin': 'ft-in', 'lb:lboz': 'lb-oz' };
   const ONOFF = { on: 'on', yes: 'on', true: 'on', 1: 'on', off: 'off', no: 'off', false: 'off', 0: 'off' };
-  const SIMPLE = ['start_unit', 'remember_unit', 'unit_bar', 'keys', 'fraction', 'digits', 'ruler', 'ruler_mark', 'theme'];
+  const SIMPLE = ['start_unit', 'remember_unit', 'unit_bar', 'keys', 'keypad', 'keypad_order', 'keypad_style', 'keypad_colors', 'fraction', 'digits', 'ruler', 'ruler_mark', 'theme'];
   const sClone = s => JSON.parse(JSON.stringify(s));
   const tokens = v => v.split(/[\s,;]+/).map(t => t.replace(/^`+|`+$/g, '')).filter(Boolean);
   const tName = t => MODE_NAME[t] || t;
@@ -895,7 +975,14 @@ const UC = (() => {
       if (SIMPLE.includes(key) || key === 'fractions' || key === 'default_unit') found++;
       switch (key) {
         case 'start_unit': case 'default_unit': { const c = codeOf(value); if (c) s.start_unit = c; else bad(`"${value}" isn't a unit code`); break; }
-        case 'remember_unit': case 'ruler': case 'ruler_mark': { const v = ONOFF[value.toLowerCase()]; if (v) s[key] = v; else bad('use on or off'); break; }
+        case 'keypad_order': { const v = { phone: 'phone', 123: 'phone', calculator: 'calculator', calc: 'calculator', 789: 'calculator' }[value.toLowerCase()]; if (v) s.keypad_order = v; else bad('use phone or calculator'); break; }
+        case 'keypad_style': { const v = value.toLowerCase(); if (PAD_STYLES[v]) s.keypad_style = v; else bad('use ' + Object.keys(PAD_STYLES).join(', ')); break; }
+        case 'keypad_colors': {
+          const c = /^(default|none)?$/i.test(value) ? [] : tokens(value).map(t => (t.match(/^#?([0-9a-f]{6}|[0-9a-f]{3})$/i) || [])[1]);
+          if (!c.length || (c.length === 5 && c.every(Boolean))) s.keypad_colors = c.map(x => '#' + x.toLowerCase()); else bad('use default, or five hex colours like #1a1a1a');
+          break;
+        }
+        case 'remember_unit': case 'ruler': case 'ruler_mark': case 'keypad': { const v = ONOFF[value.toLowerCase()]; if (v) s[key] = v; else bad('use on or off'); break; }
         case 'theme': { const v = value.toLowerCase(); if (['auto', 'light', 'dark'].includes(v)) s.theme = v; else bad('use auto, light or dark'); break; }
         case 'fraction': case 'fractions': { const d = +value.replace(/^1\s*\/\s*/, ''); if ([16, 32, 64].includes(d)) s.fraction = d; else bad('use 1/16, 1/32 or 1/64'); break; }
         case 'digits': { const d = Number(value); if (Number.isInteger(d) && d >= 3 && d <= 10) s.digits = d; else bad('use a whole number from 3 to 10'); break; }
@@ -933,6 +1020,8 @@ const UC = (() => {
       `start_unit = ${s.start_unit}`, `remember_unit = ${s.remember_unit}`,
       `unit_bar = ${s.unit_bar.map(g => g.join(' ')).join(' | ')}`,
       `keys = ${s.keys.length ? s.keys.join(' ') : 'none'}`,
+      `keypad = ${s.keypad}`, `keypad_order = ${s.keypad_order}`, `keypad_style = ${s.keypad_style}`,
+      `keypad_colors = ${s.keypad_colors.length ? s.keypad_colors.join(' ') : 'default'}`,
       `fraction = 1/${s.fraction}`, `digits = ${s.digits}`,
       `ruler = ${s.ruler}`, `ruler_mark = ${s.ruler_mark}`, `theme = ${s.theme}`];
     for (const [id, d] of Object.entries(s.units)) L.push(`unit.${id} = ${fmt(d.n, 10)} ${d.of}`);
@@ -973,7 +1062,11 @@ const UC = (() => {
       '| `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |',
       '| `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |',
       '| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\\|` separates groups, which get a thin divider between them | `mm cm m \\| thou in ft \\| C F \\| km mi \\| kg lb \\| g oz \\| L gal \\| mL floz \\| bar psi \\| Nm ftlb \\| m2 ft2` |',
-      '| `keys` | Extra keys in a row above the phone\'s number pad, left to right (phones only). They add what the number pad lacks. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (switch to the letter keyboard and back); at most 8; `none` for no row | `/ space \' " ± C abc` |',
+      '| `keys` | The extra keys. On the built-in keypad they fill the block to the right of the digits, two per row, left to right. With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
+      '| `keypad` | The app\'s own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone\'s keyboard instead. | `on`, `off` | `on` |',
+      '| `keypad_order` | Which digits are on the keypad\'s top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |',
+      '| `keypad_style` | The keypad\'s look | ' + Object.entries(PAD_STYLES).map(([k, d]) => '`' + k + '` (' + d + ')').join(', ') + ' | `panel` |',
+      '| `keypad_colors` | Their own keypad colours, used in place of the style\'s | `default`, or five hex colours in this order: keypad background, number keys, number text, extra keys, extra-key text. Example: `#10261a #1f4a33 #eafff2 #17382a #9be2b8` | `default` |',
       '| `fraction` | Inch fractions round to the nearest | `1/16`, `1/32`, `1/64` | `1/64` |',
       '| `digits` | Significant digits in decimal answers | whole number 3 to 10 | `6` |',
       '| `ruler` | Real-size ruler along the top (cm) and bottom (inches) of the yellow band | `on`, `off` | `on` |',
@@ -999,6 +1092,9 @@ const UC = (() => {
       'Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."',
       'Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`',
       '',
+      'Request: "Calculator-style keypad with the tape look."',
+      'Lines to change: `keypad_order = calculator` and `keypad_style = tape`',
+      '',
       'Request: "I mostly cook. Temperatures and kitchen volumes first, start in °F."',
       'Lines to change: `unit_bar = F C | mL cup tbsp tsp | g oz | kg lb | L gal` and `start_unit = F`',
       '',
@@ -1006,7 +1102,7 @@ const UC = (() => {
     ].join('\n');
   }
 
-  const settings = { defaults: () => sClone(S_DEFAULTS), parse: sParse, text: sText, guide: sGuide, appUrl: APP_URL, guideUrl: GUIDE_URL };
+  const settings = { defaults: () => sClone(S_DEFAULTS), parse: sParse, text: sText, guide: sGuide, appUrl: APP_URL, guideUrl: GUIDE_URL, styles: Object.keys(PAD_STYLES) };
 
   // the rest of the unit's name after what was typed: "mi" → "les", "f" → "ahrenheit"
   function completion(u, typed) {
@@ -1034,7 +1130,7 @@ const UC = (() => {
   // the number font leaves a wide gap after a decimal point; pull the next digit back in
   const num = t => esc(t).replace(/\.(?=\d)/g, '<span class="dp">.</span>');
 
-  let pinned = 'mm', sel = 0, lastUnit = null, cur = null, list = [], sayTimer = 0, charW = 0.6;
+  let pinned = 'mm', sel = 0, lastUnit = null, cur = null, list = [], sayTimer = 0, charW = 0.6, quadW = 0;
   let den = 64, S = null;
   let auto = false;      // the page (not the person) has the whole value selected
   let pendingKey = '';   // the key that is bringing focus to the box
@@ -1090,42 +1186,70 @@ const UC = (() => {
   pinned = S.start_unit;
   try { const saved = remember() && localStorage.getItem('uc-unit'); if (saved && UC.unit(saved)) pinned = saved; } catch (e) { /* start_unit */ }
 
-  const unitbar = $('unitbar'), coarse = window.matchMedia('(pointer: coarse)').matches;
+  const unitbar = $('unitbar'), quadEl = $('quad'), padEl = $('pad'), coarse = window.matchMedia('(pointer: coarse)').matches;
   const phone = () => window.innerWidth < 760;
+  // Touch screens type on the app's own keypad. It is on the page from the first frame, so nothing waits for the
+  // phone's keyboard, which iOS only raises after a tap. That keyboard (letters, dictation) stays one key away.
+  const usePad = () => coarse && S.keypad !== 'off';
+  const padOn = () => usePad() && input === inputs[0];
+  const focusBox = () => { if (!padOn()) input.focus(); };   // the keypad needs no focus, and focus would only invite the phone's keyboard
   function buildBar() { // from the unit_bar setting: lengths first, then metric/imperial pairs, by default
     const groups = S.unit_bar.map(g => g.filter(id => UC.unit(id))).filter(g => g.length);
     unitbar.innerHTML = groups.map(g => '<span class="ugroup">' + g.map(id =>
       `<button type="button" data-pin="${id}" title="${esc(cap(UC.unit(id).name))}">${esc(UC.unit(id).label)}</button>`).join('') + '</span>').join('');
   }
-  // the row of extra keys above the phone's number pad, from the keys setting
+  // the extra keys: the right-hand block of the built-in keypad, and a row above the phone's own keyboard
   const KEY_UI = {
-    '/': ['data-key="/"', '/', 'Slash'], space: ['data-key=" "', 'space', 'Space'], "'": ['data-key="\'"', '′', 'Feet'],
-    '"': ['data-key="&quot;"', '″', 'Inches'], '±': ['data-act="neg"', '±', 'Make negative or positive'],
-    C: ['data-act="clear"', 'C', 'Clear the box'], abc: ['data-act="kb"', 'abc', 'Switch between number pad and letter keyboard'],
+    '/': ['data-key="/"', '/', 'Slash', 's'], space: ['data-key=" "', 'space', 'Space'], "'": ['data-key="\'"', '′', 'Feet', 's p', 'ft'],
+    '"': ['data-key="&quot;"', '″', 'Inches', 's p', 'in'], '±': ['data-act="neg"', '±', 'Make negative or positive', 's'],
+    C: ['data-act="clear"', 'C', 'Clear the box', 's'], abc: ['data-act="kb"', 'abc', 'Switch between the keypad and the phone’s keyboard', '', '<small class="w">letters · dictation</small>'],
   };
-  function buildKeys() {
-    $('padkeys').innerHTML = S.keys.map(k => {
-      const [attr, label, aria] = KEY_UI[k];
-      return `<button type="button" ${attr} aria-label="${aria}">${k === 'abc' && input === inputs[1] ? '123' : esc(label)}</button>`;
-    }).join('');
+  const BS = '<svg viewBox="0 0 30 20" width="30" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 1h17a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H10L1.5 10z"/><path d="m15 6.5 7 7m0-7-7 7"/></svg>';
+  // in the keypad (note), the less obvious keys carry a small caption
+  const keyHtml = (k, label, note) => {
+    const [attr, text, aria, cls, sub] = KEY_UI[k];
+    return `<button type="button"${cls ? ` class="${cls}"` : ''} ${attr} aria-label="${aria}">${esc(label || text)}${!note || !sub ? '' : sub[0] === '<' ? sub : `<small>${sub}</small>`}</button>`;
+  };
+  function buildKeys() { // the row shows with the phone's keyboard; on the built-in keypad the same keys are part of it
+    $('padkeys').innerHTML = padOn() ? '' : S.keys.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123')).join('');
   }
-  // iOS won't change the keyboard of a box that already has focus, so there are two boxes:
-  // one opens the number pad, the other the letter keyboard. Switching moves the text and the focus across.
-  function switchKeyboard() {
-    const from = input, to = from === inputs[0] ? inputs[1] : inputs[0];
-    to.value = from.value;
-    to.hidden = false;
-    input = to;
-    pendingKey = ' ';  // caret to the end
-    to.focus();
+  function buildPad() { // digits in a phone's order or a calculator's, then . 0 and delete, as on a phone's number pad
+    const digit = c => `<button type="button" class="d n" data-key="${c}">${c}</button>`;
+    padEl.innerHTML = '<div class="pad-in"><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
+      '<button type="button" class="d" data-key="." aria-label="Decimal point">.</button>' + digit(0) +
+      `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div><div class="pf">` +
+      (S.keys.includes('abc') ? S.keys : [...S.keys, 'abc']).map(k => keyHtml(k, '', 1)).join('') + '</div></div>';
+  }
+  // iOS won't change the keyboard of a box that already has focus, so there are two boxes: one for numbers
+  // (the built-in keypad, or the phone's number pad) and one that brings up the phone's letter keyboard.
+  function switchKeyboard(letters = input === inputs[0]) {
+    const from = input, to = inputs[letters ? 1 : 0];
+    if (to === from) return;
+    to.value = from.value; to.hidden = false; input = to;
+    root.classList.toggle('sys', letters);
+    if (!padOn()) { pendingKey = ' '; to.focus(); }   // caret to the end
     from.hidden = true;
-    document.querySelectorAll('[data-act="kb"]').forEach(b => { b.textContent = to === inputs[1] ? '123' : 'abc'; });
+    buildKeys(); auto = false; render();
   }
+  // the phone's keyboard was put away (Done, a tap elsewhere, Android's back): the built-in keypad returns
+  inputs[1].addEventListener('blur', () => { if (usePad()) setTimeout(() => {
+    if (input === inputs[1] && document.activeElement !== input && document.hasFocus()) switchKeyboard(false);
+  }, 150); });
+  const vv = window.visualViewport;
+  let vvFull = vv ? vv.height : 0, kbUp = false;
+  if (vv) vv.addEventListener('resize', () => {
+    vvFull = Math.max(vvFull, vv.height);
+    const up = vv.height < vvFull - 120;
+    if (kbUp && !up && usePad() && input === inputs[1]) switchKeyboard(false);
+    kbUp = up;
+  });
+  window.addEventListener('orientationchange', () => { vvFull = 0; kbUp = false; });
   function pin(id) { // read the number as this unit, and leave only the number in the box
     pinned = id;
     if (remember()) try { localStorage.setItem('uc-unit', id); } catch (e) { /* fine without it */ }
-    input.value = cur && cur.numText && !cur.ftin ? cur.numText : (cur && cur.ftin ? cur.numText : '');
-    render(); input.focus();
+    input.value = (cur && cur.numText) || '';
+    render();
+    if (padOn()) selectAll(); else input.focus();   // on the keypad, the next number typed replaces this one
   }
   function buildUnits() {
     $('unitList').innerHTML = UC.catalog.map(([cat]) => `<p><b>${cat}</b> ` +
@@ -1144,39 +1268,31 @@ const UC = (() => {
     if (uid !== lastUnit || sel >= list.length) sel = 0;
     lastUnit = uid;
 
-    // the unit a bare number is being read as, shown right after what was typed
-    const bare = p.how === 'pinned' || p.how === 'implied' || p.how === 'empty';
-    const typedUnit = p.unit && p.unitText && /[a-z]/i.test(p.unitText) && !p.ftin && (p.how === 'typed' || p.how === 'guess');
-    const rest = typedUnit && input.value.endsWith(p.unitText) ? UC.completion(p.unit, p.unitText) : '';
-    ghost.innerHTML = bare ? `<i>${esc(input.value || '1')}</i><b> ${esc(p.unit.label)}</b>`
-      : rest ? `<i>${esc(input.value)}</i><b class="done">${esc(rest)}</b>` : '';
+    const tu = typedUnit(p);
+    paintGhost();
     // while a unit is being typed, the button row shows what it matches: the one in use first, then the alternatives
-    const eqEl = document.querySelector('.eq');
-    eqEl.classList.toggle('suggesting', !!typedUnit);
-    $('suggest').innerHTML = typedUnit ? [p.unit, ...p.cands].slice(0, 8).map((u, i) =>
+    document.querySelector('.eq').classList.toggle('suggesting', !!tu);
+    $('suggest').innerHTML = tu ? [p.unit, ...p.cands].slice(0, 8).map((u, i) =>
       `<button type="button" data-sug="${esc(u.id)}" class="${i ? '' : 'on'}" title="${esc(cap(u.name))}">${esc(u.label)}</button>`).join('') : '';
 
-    $('quad').innerHTML = list.slice(0, 4).map(r =>
-      `<button type="button" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}"${r.note ? ` title="${esc(r.note)}"` : ''}>` +
-      `<span class="v">${num(r.show)}</span>${r.unit ? ` <span class="u">${esc(r.unit)}</span>` : ''}` +
-      `${r.short ? `<span class="e">${esc(r.short)}</span>` : ''}</button>`).join('');
-    let st;
-    switch (p.how) {
-      case 'empty': st = `Showing 1 ${esc(p.unit.label)}. Type a number, with a unit or without.`; break;
-      case 'pinned': st = `Read as ${esc(p.unit.name)}, the last unit you used. Type a unit after the number to change it.`; break;
-      case 'implied': st = 'A fraction with no unit reads as inches.'; break;
-      case 'typed': st = p.ftin ? `Feet and inches: ${esc(UC.fmt(p.value))} in.` : esc(cap(p.unit.name)) + '.'; break;
-      case 'guess': st = `Read “${esc(p.unitText)}” as ${esc(p.unit.name)}.`; break;
-      case 'badnum': st = `Can’t read “${esc(p.unitText)}” as a number.`; break;
-      default: st = `No unit matches “${esc(p.unitText)}”. Try mm, in, ft, kg, lb, c, f, psi or nm.`;
-    }
-    const commaNote = p.comma && p.unit && !p.frac;
-    if (commaNote) st = `Read as ${esc(UC.fmt(Math.abs(p.value), 12))}: ` + (p.comma === 'thousands'
-      ? 'a comma before three digits groups thousands. Use a point for a decimal.' : 'the comma is taken as a decimal point.');
-    if (p.unit && !list.length) st = `${esc(p.q)} has no answer in other units.`;
-    statusEl.innerHTML = st;
-    statusEl.classList.toggle('bad', p.how === 'unknown' || p.how === 'badnum');
-    statusEl.classList.toggle('need', p.how === 'unknown' || p.how === 'badnum' || !!commaNote || (!!p.unit && !list.length));
+    // nothing to convert: say why, where the answers would be
+    const why = !p.unit ? (p.how === 'badnum' ? `Can’t read “${esc(p.unitText)}” as a number.` : `No unit matches “${esc(p.unitText)}”. Try mm, in, ft, kg, lb, c, f, psi or nm.`)
+      : list.length ? '' : `${esc(p.q)} has no answer in other units.`;
+    // answers never wrap or resize their tile: a long one gets smaller type instead
+    const n = Math.min(4, list.length), [big, uw, inner, gap] = phone() ? [20, 7, 20, 6] : [28, 9, 32, 8];
+    quadW = quadEl.clientWidth || quadW || window.innerWidth - 24;
+    quadEl.innerHTML = why ? `<p class="msg">${why}</p>` : list.slice(0, 4).map((r, i) => {
+      const full = usePad() && (n < 3 || (n === 3 && i === 2));
+      const room = (full ? quadW : (quadW - gap) / 2) - inner - (r.unit ? r.unit.length * uw + 5 : 0);
+      const fs = Math.max(11, Math.floor(room / (r.show.length * charW)));
+      return `<button type="button" data-copy="${esc(r.copy)}" data-copy-unit="${esc(r.copyUnit)}"${r.note ? ` title="${esc(r.note)}"` : ''}>` +
+        `<span class="v"${fs < big ? ` style="font-size:${fs}px"` : ''}>${num(r.show)}</span>${r.unit ? ` <span class="u">${esc(r.unit)}</span>` : ''}` +
+        `${r.short ? `<span class="e">${esc(r.short)}</span>` : ''}</button>`;
+    }).join('');
+    const commaNote = p.comma && p.unit && !p.frac && list.length;
+    statusEl.textContent = commaNote ? `Read as ${UC.fmt(Math.abs(p.value), 12)}: ` + (p.comma === 'thousands'
+      ? 'a comma before three digits groups thousands. Use a point for a decimal.' : 'the comma is taken as a decimal point.') : '';
+    statusEl.classList.toggle('need', !!commaNote);
     unitbar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.pin === uid));
 
     alsoHead.textContent = p.unit ? `${p.q} is also` : 'Nothing to convert yet';
@@ -1191,13 +1307,26 @@ const UC = (() => {
     paintSel(); fit();
   }
 
+  // What sits over the box: the unit a bare number is read as, the rest of a half-typed unit name and,
+  // on the built-in keypad, the caret (it always types at the end) and the "a new number replaces this" highlight.
+  const typedUnit = p => p.unit && p.unitText && /[a-z]/i.test(p.unitText) && !p.ftin && (p.how === 'typed' || p.how === 'guess');
+  function paintGhost() {
+    const p = cur, v = input.value, own = padOn();
+    if (!p) return;
+    const bare = p.how === 'pinned' || p.how === 'implied' || p.how === 'empty';
+    const rest = typedUnit(p) && v.endsWith(p.unitText) ? UC.completion(p.unit, p.unitText) : '';
+    const caret = own ? '<u></u>' : '';
+    const typed = v ? `<i${own && auto ? ' class="all"' : ''}>${esc(v)}</i>${caret}` : caret + (bare ? '<i>1</i>' : '');
+    ghost.innerHTML = bare ? typed + `<b> ${esc(p.unit.label)}</b>` : rest ? typed + `<b class="done">${esc(rest)}</b>` : own ? typed : '';
+  }
+
   function hintText() {
     const r = list[sel];
     if (!r) return '';
     return `Enter copies ${r.copy}.` + (r.copyUnit !== r.copy ? ` Shift+Enter copies ${r.copyUnit}.` : '');
   }
   function paintSel() {
-    $('quad').querySelectorAll('button').forEach((b, i) => b.classList.toggle('sel', i === sel && !coarse));
+    quadEl.querySelectorAll('button').forEach((b, i) => b.classList.toggle('sel', i === sel && !coarse));
     alsoEl.querySelectorAll('.row').forEach(b => b.classList.toggle('sel', +b.dataset.i === sel));
     if (!sayTimer) hintEl.textContent = hintText();
   }
@@ -1286,7 +1415,7 @@ const UC = (() => {
   $('qrOpen').addEventListener('click', e => { e.stopPropagation(); input.blur(); qr.hidden = false; $('qrClose').focus(); });
   $('qrClose').addEventListener('click', e => { e.stopPropagation(); qr.hidden = true; });
   $('calOpen').addEventListener('click', e => { e.stopPropagation(); input.blur(); cal.hidden = false; calShow(); window.scrollTo({ top: 0 }); });
-  $('calDone').addEventListener('click', () => { cal.hidden = true; input.focus(); });
+  $('calDone').addEventListener('click', () => { cal.hidden = true; focusBox(); });
   $('calMinus').addEventListener('click', () => calSet(pxmm * 0.997));
   $('calPlus').addEventListener('click', () => calSet(pxmm * 1.003));
   calRange.addEventListener('input', () => calSet(parseFloat(calRange.value)));
@@ -1295,18 +1424,21 @@ const UC = (() => {
     pxmm = autoMm || CSS_MM; calSource = autoMm ? 'auto' : 'none'; calShow(); drawTape();
   });
 
-  // extra keys for the number pad: act on press and keep focus in the box, so the keyboard stays open
+  // A key from the keypad or the extra row. Keys act on press and never take focus, so nothing opens or closes.
+  // The built-in keypad types at the end of the value; beside the phone's keyboard, keys go in at its caret.
   function padKey(k) {
-    if (k === 'clear') {
-      input.value = '';
-    } else if (k === 'neg') {
-      input.value = /^\s*-/.test(input.value) ? input.value.replace(/^\s*-\s*/, '') : '-' + input.value;
-    } else {
-      let a = input.selectionStart ?? input.value.length, z = input.selectionEnd ?? a;
-      if (auto || document.activeElement !== input) { a = z = input.value.length; } // after a copy, carry on from the end
+    const v = input.value, own = padOn();
+    if (k === 'clear') input.value = '';
+    else if (k === 'neg') input.value = /^\s*-/.test(v) ? v.replace(/^\s*-\s*/, '') : '-' + v;
+    else if (k === 'bs') input.value = v.slice(0, -1);   // on a highlighted value too: delete means "fix this one"
+    else {
+      let a = input.selectionStart ?? v.length, z = input.selectionEnd ?? a;
+      if (own) [a, z] = auto ? aimRange(k) : [v.length, v.length];
+      else if (auto || document.activeElement !== input) a = z = v.length;   // after a copy, carry on from the end
       input.setRangeText(k, a, z, 'end');
     }
     auto = false; render();
+    if (own) return;
     if (document.activeElement !== input) { pendingKey = ' '; input.focus(); }
     const n = input.value.length; if (k === 'neg') input.setSelectionRange(n, n);
   }
@@ -1324,25 +1456,48 @@ const UC = (() => {
     if (Date.now() - touchedSug > 800) setUnit(b.dataset.sug);
   }, true);
   const keyAct = b => b.dataset.act === 'kb' ? switchKeyboard() : padKey(b.dataset.act || b.dataset.key);
-  let touchedKey = 0;
-  const padEl = $('padkeys');
-  // Keys act on touch and never take focus, so the keyboard stays up. The keyboard switch waits for the
-  // finger to lift, the moment iOS lets a page move focus to another box and bring up a different keyboard.
-  padEl.addEventListener('touchstart', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    e.preventDefault(); touchedKey = Date.now();
-    if (b.dataset.act !== 'kb') keyAct(b);
-  }, { passive: false });
-  padEl.addEventListener('touchend', e => {
-    const b = e.target.closest('button'); if (!b || b.dataset.act !== 'kb') return;
-    e.preventDefault(); touchedKey = Date.now(); keyAct(b);
-  }, { passive: false });
-  padEl.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
-  padEl.addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    e.stopPropagation();
-    if (Date.now() - touchedKey > 800) keyAct(b);
-  }, true);
+  // Keys act the moment they are touched. Delete repeats while held. The keyboard switch waits for the finger
+  // to lift: that is when iOS lets a page move focus to another box and bring up a different keyboard.
+  function bindKeys(el) {
+    let touched = 0, again = 0;
+    const stop = () => { clearTimeout(again); again = 0; };
+    el.addEventListener('touchstart', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      e.preventDefault(); touched = Date.now(); stop(); press(b);
+      if (b.dataset.act === 'kb') return;
+      keyAct(b);
+      if (b.dataset.act === 'bs') { const more = () => { keyAct(b); again = setTimeout(more, 70); }; again = setTimeout(more, 420); }
+    }, { passive: false });
+    const lift = e => {
+      stop(); letGo();
+      const b = e.target.closest('button'); if (!b || b.dataset.act !== 'kb' || e.type !== 'touchend') return;
+      e.preventDefault(); touched = Date.now(); keyAct(b);
+    };
+    el.addEventListener('touchend', lift, { passive: false });
+    el.addEventListener('touchcancel', lift);
+    el.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      e.stopPropagation();
+      if (Date.now() - touched > 800) keyAct(b);
+    }, true);
+  }
+  bindKeys($('padkeys')); bindKeys(padEl);
+  // Every button answers the finger at once: it looks pressed on touch-down and holds that for a moment,
+  // so even the quickest tap shows.
+  let held = null, heldAt = 0;
+  function press(b) {
+    if (b === held) return;
+    letGo(); clearTimeout(b._up);
+    held = b; heldAt = performance.now(); b.classList.add('dn');
+  }
+  function letGo() {
+    const b = held; if (!b) return;
+    held = null; b._up = setTimeout(() => b.classList.remove('dn'), Math.max(0, 90 - (performance.now() - heldAt)));
+  }
+  document.addEventListener('pointerdown', e => { const b = e.target instanceof Element && e.target.closest('button, summary, a.try'); if (b) press(b); }, true);
+  document.addEventListener('pointerup', letGo, true);
+  document.addEventListener('pointercancel', letGo, true);
 
   function legacyCopy(text) {
     const t = document.createElement('textarea');
@@ -1364,12 +1519,12 @@ const UC = (() => {
       setTimeout(() => { el.classList.remove('copied'); if (c) c.textContent = 'copy'; }, 900);
     }
     // on a phone, a copy made further down the page stays there instead of jumping back to the keyboard
-    if (!(coarse && window.scrollY > band.offsetHeight)) { input.focus(); selectAll(); }
+    if (!(coarse && window.scrollY > band.offsetHeight)) { focusBox(); selectAll(); }
   }
   function copySel(withUnit) {
     const r = list[sel];
     if (!r) return;
-    copy(withUnit ? r.copyUnit : r.copy, sel < 4 ? $('quad').children[sel] : alsoEl.querySelector(`.row[data-i="${sel}"]`));
+    copy(withUnit ? r.copyUnit : r.copy, sel < 4 ? quadEl.children[sel] : alsoEl.querySelector(`.row[data-i="${sel}"]`));
   }
   function setUnit(id) {
     const u = UC.unit(id);
@@ -1377,23 +1532,30 @@ const UC = (() => {
     input.value = (cur && cur.numText ? cur.numText + ' ' : '') + u.label;
     render();
     // ready for the next value: a number replaces it, a unit swaps just the unit
-    if (document.activeElement !== input) input.focus(); else selectAll();
+    if (padOn() || document.activeElement === input) selectAll(); else input.focus();
   }
 
   inputs.forEach(el => el.addEventListener('input', render));
   // Coming back to the box selects everything, so a new number replaces the old value.
   // The first key onto that selection decides what it replaces: a digit starts over,
   // a unit swaps only the unit ("12 cm", copy, "mm" gives 12mm), a space or > carries on at the end.
-  function selectAll() { input.select(); auto = true; }
-  function aim(key) {
+  function selectAll() { auto = true; if (padOn()) paintGhost(); else input.select(); }
+  function aimRange(key) {
     const v = input.value, n = v.length;
-    if (!v || startsNumber(key)) { input.select(); return; }
-    if (key === ' ' || key === '>' || key === '=') { input.setSelectionRange(n, n); return; }
+    if (!v || startsNumber(key)) return [0, n];
+    if (key === ' ' || key === '>' || key === '=') return [n, n];
     const m = cur && !cur.ftin ? v.match(NUM_HEAD) : null;
-    if (m) input.setSelectionRange(m[0].length, n); else input.select();
+    return m ? [m[0].length, n] : [0, n];
   }
-  inputs.forEach(el => el.addEventListener('focus', () => { if (pendingKey) { aim(pendingKey); pendingKey = ''; auto = false; } else selectAll(); }));
-  inputs.forEach(el => el.addEventListener('mousedown', e => { if (document.activeElement !== input) { e.preventDefault(); input.focus(); } else auto = false; }));
+  const aim = key => input.setSelectionRange(...aimRange(key));
+  inputs.forEach(el => el.addEventListener('focus', () => {
+    if (padOn()) return;
+    if (pendingKey) { aim(pendingKey); pendingKey = ''; auto = false; } else selectAll();
+  }));
+  inputs.forEach(el => el.addEventListener('mousedown', e => {
+    if (padOn()) { e.preventDefault(); if (auto) { auto = false; paintGhost(); } }   // a tap on the box only drops the highlight
+    else if (document.activeElement !== input) { e.preventDefault(); input.focus(); } else auto = false;
+  }));
   inputs.forEach(el => el.addEventListener('keydown', e => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) return;
     const typed = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
@@ -1403,11 +1565,12 @@ const UC = (() => {
   // back in the app: ready to type again, unless they were busy further down the page
   window.addEventListener('focus', () => {
     const a = document.activeElement;
-    if (a === input) selectAll();
+    if (padOn()) { if (window.scrollY < band.offsetHeight) selectAll(); }
+    else if (a === input) selectAll();
     else if ((!a || a === document.body) && window.scrollY < band.offsetHeight) input.focus();
   });
   window.addEventListener('resize', () => {
-    fit();
+    render();
     autoMm = guessPxPerMm();
     if (calSource === 'auto') { pxmm = autoMm; drawTape(); }
   });
@@ -1417,12 +1580,14 @@ const UC = (() => {
     if (c) { copy(e.shiftKey ? c.dataset.copyUnit : c.dataset.copy, c); return; }
     const dn = e.target.closest('[data-den]');
     if (dn) { den = S.fraction = +dn.dataset.den; saveSettings(); setText.value = UC.settings.text(S); render(); return; }
+    const st = e.target.closest('[data-set]');
+    if (st) { applyText(st.dataset.set); return; }
     const pn = e.target.closest('[data-pin]');
     if (pn) { pin(pn.dataset.pin); return; }
     const u = e.target.closest('[data-unit]');
     if (u) { if (phone()) { pin(u.dataset.unit); window.scrollTo({ top: 0 }); } else setUnit(u.dataset.unit); return; }
     const t = e.target.closest('[data-try]');
-    if (t) { input.value = t.dataset.try; render(); input.focus(); window.scrollTo({ top: 0 }); }
+    if (t) { input.value = t.dataset.try; render(); if (padOn()) selectAll(); else input.focus(); window.scrollTo({ top: 0 }); }
   });
 
   document.addEventListener('keydown', e => {
@@ -1430,7 +1595,7 @@ const UC = (() => {
     if (!qr.hidden) { if (e.key === 'Escape') qr.hidden = true; return; }
     if (!cal.hidden) { if (e.key === 'Escape') cal.hidden = true; return; }
     const onButton = e.target instanceof Element && e.target.closest('button');
-    if (e.key === 'Escape') { e.preventDefault(); input.value = ''; render(); input.focus(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); input.value = ''; render(); focusBox(); return; }
     if (e.key === 'Enter') { if (onButton) return; e.preventDefault(); copySel(e.shiftKey); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (list.length < 2 || onButton) return;
@@ -1439,6 +1604,9 @@ const UC = (() => {
       paintSel();
       return;
     }
+    const typing = !e.ctrlKey && !e.metaKey && !e.altKey && !(onButton && e.key === ' ');
+    // a real keyboard on a touch screen types through the built-in keypad
+    if (padOn()) { if (typing && (e.key.length === 1 || e.key === 'Backspace')) { e.preventDefault(); padKey(e.key === 'Backspace' ? 'bs' : e.key); } return; }
     // typing anywhere lands in the box
     if (e.target !== input && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !(onButton && e.key === ' ')) {
       pendingKey = e.key;
@@ -1455,11 +1623,22 @@ const UC = (() => {
     tape.hidden = S.ruler === 'off';
     if (S.theme === 'auto') { if (hostTheme) root.setAttribute('data-theme', hostTheme); else root.removeAttribute('data-theme'); }
     else root.setAttribute('data-theme', S.theme);
+    // which keyboard types, and how the built-in one looks
+    const own = usePad();
+    root.classList.toggle('padon', own); root.classList.toggle('touch', coarse); root.classList.toggle('sys', input === inputs[1]);
+    inputs[0].readOnly = own;   // read-only: a tap on the box can never bring up the phone's keyboard over the keypad
+    inputs[0].setAttribute('inputmode', own ? 'none' : coarse ? 'decimal' : 'text');
+    root.dataset.pad = S.keypad_style;
+    if (S.keypad_style !== 'panel' && !$('looks')) {
+      const l = document.createElement('link'); l.id = 'looks'; l.rel = 'stylesheet'; l.href = 'styles.css'; document.head.appendChild(l);
+    }
+    ['--pad-bg', '--k-bg', '--k-fg', '--f-bg', '--f-fg'].forEach((v, i) => S.keypad_colors.length ? padEl.style.setProperty(v, S.keypad_colors[i]) : padEl.style.removeProperty(v));
+    document.querySelectorAll('[data-set]').forEach(b => { const [k, v] = b.dataset.set.split(' = '); b.classList.toggle('on', S[k] === v); });
   }
   function useSettings(s) {
     S = s; UC.configure(S); den = S.fraction;
     if (!UC.unit(pinned)) pinned = S.start_unit;
-    buildBar(); buildKeys(); buildUnits(); applyLook();
+    applyLook(); buildBar(); buildKeys(); buildPad(); buildUnits();
     setText.value = UC.settings.text(S);
     render();
   }
@@ -1543,15 +1722,15 @@ const UC = (() => {
   });
 
   function start(saved) {
-    inputs[0].setAttribute('inputmode', coarse ? 'decimal' : 'text');
-    buildUnits(); buildBar(); buildKeys(); applyLook();
+    $('padStyles').innerHTML = UC.settings.styles.map(k => `<button type="button" class="try den" data-set="keypad_style = ${k}">${cap(k)}</button>`).join('');
+    buildUnits(); buildBar(); buildKeys(); buildPad(); applyLook();
     if (!phone()) $('tips').open = true; // a phone starts with the tips folded away
     setText.value = UC.settings.text(S);
     if (saved && typeof saved.raw === 'string') input.value = saved.raw;
     measure(); render(); drawTape(); calShow(); readShared();
     if ('ResizeObserver' in window) new ResizeObserver(drawTape).observe(band);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { root.classList.toggle('b612', document.fonts.check('700 20px "B612 Mono"')); measure(); fit(); drawTape(); });
-    input.focus();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { root.classList.toggle('b612', document.fonts.check('700 20px "B612 Mono"')); measure(); render(); });
+    focusBox();
   }
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { /* works online without it */ });
   const hot = window.claude && window.claude.hot;
