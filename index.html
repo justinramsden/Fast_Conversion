@@ -309,13 +309,17 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
   --kh: 54px;
 }
 /* as tall as the screen allows, so band and keypad fill a phone without scrolling */
-@supports (height: 1svh) { .pad { --kh: clamp(46px, calc((100svh - 310px - env(safe-area-inset-top, 0px)) / 4), 60px); } }
+@supports (height: 1svh) { .pad { --kh: clamp(46px, calc((100svh - 362px - env(safe-area-inset-top, 0px)) / 4), 60px); } }
 .padon:not(.sys) .pad { display: block; }
-.pad-in { display: grid; grid-template-columns: 17fr 10fr; gap: 10px; max-width: 520px; margin: 0 auto; }
+.pad-in { display: grid; gap: 8px; max-width: 520px; margin: 0 auto; }
 .pd, .pf { display: grid; gap: 6px; }
 .pd { grid-template-columns: repeat(3, 1fr); grid-auto-rows: var(--kh); }
-.pf { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
-.pf button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* the extra keys: one line under the digits (two lines when there are more than seven) */
+.pf { grid-template-columns: repeat(var(--n, 7), 1fr); grid-auto-rows: 44px; }
+.pf button { font-size: 15px; }
+.pf .s { font-size: 22px; }
+.pf .p { padding-top: 5px; font-size: 26px; }
+.pf small { margin-top: 2px; font-size: 11px; }
 .pad button {
   position: relative; display: grid; place-items: center; align-content: center; min-width: 0; padding: 0; cursor: pointer;
   font: 600 18px/1 var(--font-ui); color: var(--f-fg); background: var(--f-bg);
@@ -327,8 +331,6 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 .pad [data-key="."] { padding-bottom: 14px; font-size: 34px; }
 .pad small { display: block; margin-top: 3px; font: 600 12px/1 var(--font-ui); opacity: .72; }
 .pad .p { padding-top: 6px; font-size: 30px; line-height: .6; }   /* the prime marks sit high in their glyphs */
-.pf small.w { display: none; }
-.pf button:last-child:nth-child(odd) small.w { display: block; }
 /* the signature: every number sits under a graduation, like the numbers on a tape */
 .pad .n::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px; color: var(--tick);
@@ -1062,7 +1064,7 @@ const UC = (() => {
       '| `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |',
       '| `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |',
       '| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\\|` separates groups, which get a thin divider between them | `mm cm m \\| thou in ft \\| C F \\| km mi \\| kg lb \\| g oz \\| L gal \\| mL floz \\| bar psi \\| Nm ftlb \\| m2 ft2` |',
-      '| `keys` | The extra keys. On the built-in keypad they fill the block to the right of the digits, two per row, left to right. With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
+      '| `keys` | The extra keys. On the built-in keypad they are a line under the digits, left to right (two lines when there are more than seven). With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
       '| `keypad` | The app\'s own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone\'s keyboard instead. | `on`, `off` | `on` |',
       '| `keypad_order` | Which digits are on the keypad\'s top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |',
       '| `keypad_style` | The keypad\'s look | ' + Object.entries(PAD_STYLES).map(([k, d]) => '`' + k + '` (' + d + ')').join(', ') + ' | `panel` |',
@@ -1202,7 +1204,7 @@ const UC = (() => {
   const KEY_UI = {
     '/': ['data-key="/"', '/', 'Slash', 's'], space: ['data-key=" "', 'space', 'Space'], "'": ['data-key="\'"', '′', 'Feet', 's p', 'ft'],
     '"': ['data-key="&quot;"', '″', 'Inches', 's p', 'in'], '±': ['data-act="neg"', '±', 'Make negative or positive', 's'],
-    C: ['data-act="clear"', 'C', 'Clear the box', 's'], abc: ['data-act="kb"', 'abc', 'Switch between the keypad and the phone’s keyboard', '', '<small class="w">letters · dictation</small>'],
+    C: ['data-act="clear"', 'C', 'Clear the box', 's'], abc: ['data-act="kb"', 'abc', 'Switch between the keypad and the phone’s keyboard'],
   };
   const BS = '<svg viewBox="0 0 30 20" width="30" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 1h17a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H10L1.5 10z"/><path d="m15 6.5 7 7m0-7-7 7"/></svg>';
   // in the keypad (note), the less obvious keys carry a small caption
@@ -1214,11 +1216,12 @@ const UC = (() => {
     $('padkeys').innerHTML = padOn() ? '' : S.keys.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123')).join('');
   }
   function buildPad() { // digits in a phone's order or a calculator's, then . 0 and delete, as on a phone's number pad
+    const fk = S.keys.includes('abc') ? S.keys : [...S.keys, 'abc'];
     const digit = c => `<button type="button" class="d n" data-key="${c}">${c}</button>`;
     padEl.innerHTML = '<div class="pad-in"><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
       '<button type="button" class="d" data-key="." aria-label="Decimal point">.</button>' + digit(0) +
-      `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div><div class="pf">` +
-      (S.keys.includes('abc') ? S.keys : [...S.keys, 'abc']).map(k => keyHtml(k, '', 1)).join('') + '</div></div>';
+      `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div><div class="pf" style="--n:${fk.length > 7 ? Math.ceil(fk.length / 2) : fk.length}">` +
+      fk.map(k => keyHtml(k, '', 1)).join('') + '</div></div>';
   }
   // iOS won't change the keyboard of a box that already has focus, so there are two boxes: one for numbers
   // (the built-in keypad, or the phone's number pad) and one that brings up the phone's letter keyboard.
