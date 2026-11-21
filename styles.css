@@ -26,3 +26,5 @@
 /* round extra keys leave less room for a caption */
 [data-pad="pill"] .pf small, [data-pad="tile"] .pf small { margin-top: 1px; font-size: 9.5px; }
 [data-pad="pill"] .pf .s, [data-pad="tile"] .pf .s { font-size: 19px; }
+[data-pad="pill"] .pf .pm, [data-pad="tile"] .pf .pm { font-size: 14px; }
+[data-pad="pill"] .pf [data-act="kb"] small, [data-pad="tile"] .pf [data-act="kb"] small { font-size: 8.5px; }

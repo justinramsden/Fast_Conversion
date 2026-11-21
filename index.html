@@ -324,6 +324,8 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 .pf .s { font-size: 22px; }
 .pf .p { padding-top: 5px; font-size: 26px; }
 .pf small { margin-top: 2px; font-size: 11px; }
+.pad .pf .pm { font-size: 17px; letter-spacing: -1px; }
+.pf [data-act="kb"] small { font-size: 10px; letter-spacing: -.2px; }
 .pad button {
   position: relative; display: grid; place-items: center; align-content: center; min-width: 0; padding: 0; cursor: pointer;
   font: 600 18px/1 var(--font-ui); color: var(--f-fg); background: var(--f-bg);
@@ -1205,8 +1207,8 @@ const UC = (() => {
   // the extra keys: the right-hand block of the built-in keypad, and a row above the phone's own keyboard
   const KEY_UI = {
     '/': ['data-key="/"', '/', 'Slash', 's', 'fraction'], space: ['data-key=" "', 'space', 'Space'], "'": ['data-key="\'"', '′', 'Feet', 's p', 'ft'],
-    '"': ['data-key="&quot;"', '″', 'Inches', 's p', 'in'], '±': ['data-act="neg"', '±', 'Make negative or positive', 's'],
-    C: ['data-act="clear"', 'C', 'Clear the box', 's', 'clear'], abc: ['data-act="kb"', 'abc', 'Switch between the keypad and the phone’s keyboard'],
+    '"': ['data-key="&quot;"', '″', 'Inches', 's p', 'in'], '±': ['data-act="neg"', '+/−', 'Make negative or positive', 's pm'],
+    C: ['data-act="clear"', 'C', 'Clear the box', 's', 'clear'], abc: ['data-act="kb"', 'abc', 'Switch between the keypad and the phone’s keyboard', '', 'keyboard'],
   };
   const BS = '<svg viewBox="0 0 30 20" width="30" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 1h17a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H10L1.5 10z"/><path d="m15 6.5 7 7m0-7-7 7"/></svg>';
   // in the keypad (note), the less obvious keys carry a small caption
@@ -1217,13 +1219,16 @@ const UC = (() => {
   function buildKeys() { // the row shows with the phone's keyboard; on the built-in keypad the same keys are part of it
     $('padkeys').innerHTML = usePad() ? '' : S.keys.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123')).join('');
   }
+  // the switch key names where it leads: the phone's keyboard, or back to the keypad
+  function kbLabel() { const kb = padEl.querySelector('[data-act="kb"]'); if (kb) kb.innerHTML = input === inputs[1] ? '123<small>keypad</small>' : 'abc<small>keyboard</small>'; }
   function buildPad() { // digits in a phone's order or a calculator's, then . 0 and delete, as on a phone's number pad
     const fk = S.keys.includes('abc') ? S.keys : [...S.keys, 'abc'];
     const digit = c => `<button type="button" class="d" data-key="${c}">${c}</button>`;
     padEl.innerHTML = `<div class="pad-in"><div class="pf" style="--n:${fk.length > 7 ? Math.ceil(fk.length / 2) : fk.length}">` +
-      fk.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123', 1)).join('') + '</div><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
+      fk.map(k => keyHtml(k, '', 1)).join('') + '</div><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
       '<button type="button" class="d" data-key="." aria-label="Decimal point">.</button>' + digit(0) +
       `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div></div>`;
+    kbLabel();
   }
   // iOS won't change the keyboard of a box that already has focus, so there are two boxes: one for numbers
   // (the built-in keypad, or the phone's number pad) and one that brings up the phone's letter keyboard.
@@ -1235,7 +1240,7 @@ const UC = (() => {
     if (!padOn()) { pendingKey = ' '; to.focus(); }   // caret to the end
     from.hidden = true;
     buildKeys(); auto = false; render();
-    const kb = padEl.querySelector('[data-act="kb"]'); if (kb) kb.textContent = letters ? '123' : 'abc';
+    kbLabel();
   }
   // the phone's keyboard was put away (Done, a tap elsewhere, Android's back): the built-in keypad returns
   inputs[1].addEventListener('blur', () => { if (usePad()) setTimeout(() => {
