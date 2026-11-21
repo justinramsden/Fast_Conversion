@@ -1,5 +1,5 @@
 /* Fast Conversion: extra looks. The page fetches this file only when a setting asks for one of them;
-   the default look (pill) lives in index.html, so it costs nothing to anyone who never changes the style.
+   the default look (flat) lives in index.html, so it costs nothing to anyone who never changes the style.
 
    A keypad style is a block of values for the keypad's variables, plus any rules of its own:
      --pad-bg  the keypad's background        --k-lo   the shadow under a key
@@ -17,9 +17,12 @@
 [data-pad="tile"] .pad button { box-shadow: none; }
 [data-pad="tile"] .pf button { border-radius: 999px; box-shadow: inset 0 0 0 1.5px #1a1808; }
 
-/* flat: plain grey keys, like the phone's own keyboard */
-[data-pad="flat"] .pad {
-  --pad-bg: #2b2b2d; --k-bg: #6b6b6e; --k-fg: #fff; --f-bg: #464648; --f-fg: #fff;
-  --k-lo: #111; --c-fg: #ff9d8f; --hit: #9a9a9e; --hit-fg: #fff; --kr: 6px;
+/* pill: round dark number keys under a row of yellow extra keys, like a phone calculator */
+[data-pad="pill"] .pad {
+  --pad-bg: #131210; --k-bg: #3b3934; --k-fg: #f6f3e7; --f-bg: #f2c92e; --f-fg: #1a1808;
+  --k-lo: transparent; --c-fg: #a3180a; --hit: #f6f3e7; --hit-fg: #1a1808; --kr: 999px;
 }
-[data-pad="flat"] .pad button { font-family: -apple-system, system-ui, sans-serif; font-weight: 400; box-shadow: 0 1px 0 var(--k-lo); }
+
+/* round extra keys leave less room for a caption */
+[data-pad="pill"] .pf small, [data-pad="tile"] .pf small { margin-top: 1px; font-size: 9.5px; }
+[data-pad="pill"] .pf .s, [data-pad="tile"] .pf .s { font-size: 19px; }
