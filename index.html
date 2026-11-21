@@ -310,11 +310,12 @@ kbd { padding: 0 6px; border: 1px solid var(--rule); border-bottom-width: 2px; b
 }
 /* as tall as the screen allows, so band and keypad fill a phone without scrolling */
 @supports (height: 1svh) { .pad { --kh: clamp(46px, calc((100svh - 362px - env(safe-area-inset-top, 0px)) / 4), 60px); } }
-.padon:not(.sys) .pad { display: block; }
+.padon .pad { display: block; }
+.sys .pd { display: none; }   /* beside the phone's keyboard only the extra keys stay, in the same place */
 .pad-in { display: grid; gap: 8px; max-width: 520px; margin: 0 auto; }
 .pd, .pf { display: grid; gap: 6px; }
 .pd { grid-template-columns: repeat(3, 1fr); grid-auto-rows: var(--kh); }
-/* the extra keys: one line under the digits (two lines when there are more than seven) */
+/* the extra keys: one line over the digits (two lines when there are more than seven) */
 .pf { grid-template-columns: repeat(var(--n, 7), 1fr); grid-auto-rows: 44px; }
 .pf button { font-size: 15px; }
 .pf .s { font-size: 22px; }
@@ -1064,7 +1065,7 @@ const UC = (() => {
       '| `start_unit` | The unit a bare number (one typed without a unit) is read as when the app opens | one unit code | `mm` |',
       '| `remember_unit` | Read bare numbers as the last unit used instead of always `start_unit` | `on`, `off` | `on` |',
       '| `unit_bar` | The row of unit buttons under the input box, left to right; one tap reads the number as that unit. On a phone about 4 fit before it scrolls sideways, so put the most used first. Pairs of matching metric and imperial units read well. | unit codes separated by spaces; `\\|` separates groups, which get a thin divider between them | `mm cm m \\| thou in ft \\| C F \\| km mi \\| kg lb \\| g oz \\| L gal \\| mL floz \\| bar psi \\| Nm ftlb \\| m2 ft2` |',
-      '| `keys` | The extra keys. On the built-in keypad they are a line under the digits, left to right (two lines when there are more than seven). With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
+      '| `keys` | The extra keys. On the built-in keypad they are a line above the digits, left to right (two lines when there are more than seven), and stay in the same place when the phone\'s keyboard is up. With the phone\'s own keyboard they are a row above it. | any of `/` (fractions), `space` (between whole number and fraction), `\'` (feet), `"` (inches), `±` (negative), `C` (clear the box), `abc` (bring up the phone\'s keyboard for letters and dictation, and go back); at most 8; `none` for none (the keypad always keeps `abc`) | `/ space \' " ± C abc` |',
       '| `keypad` | The app\'s own number keypad on phones and tablets. It is there the moment the app opens, with no tap on the box first. `off` uses the phone\'s keyboard instead. | `on`, `off` | `on` |',
       '| `keypad_order` | Which digits are on the keypad\'s top row | `phone` (1 2 3 on top), `calculator` (7 8 9 on top) | `phone` |',
       '| `keypad_style` | The keypad\'s look | ' + Object.entries(PAD_STYLES).map(([k, d]) => '`' + k + '` (' + d + ')').join(', ') + ' | `panel` |',
@@ -1213,15 +1214,15 @@ const UC = (() => {
     return `<button type="button"${cls ? ` class="${cls}"` : ''} ${attr} aria-label="${aria}">${esc(label || text)}${!note || !sub ? '' : sub[0] === '<' ? sub : `<small>${sub}</small>`}</button>`;
   };
   function buildKeys() { // the row shows with the phone's keyboard; on the built-in keypad the same keys are part of it
-    $('padkeys').innerHTML = padOn() ? '' : S.keys.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123')).join('');
+    $('padkeys').innerHTML = usePad() ? '' : S.keys.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123')).join('');
   }
   function buildPad() { // digits in a phone's order or a calculator's, then . 0 and delete, as on a phone's number pad
     const fk = S.keys.includes('abc') ? S.keys : [...S.keys, 'abc'];
     const digit = c => `<button type="button" class="d n" data-key="${c}">${c}</button>`;
-    padEl.innerHTML = '<div class="pad-in"><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
+    padEl.innerHTML = `<div class="pad-in"><div class="pf" style="--n:${fk.length > 7 ? Math.ceil(fk.length / 2) : fk.length}">` +
+      fk.map(k => keyHtml(k, k === 'abc' && input === inputs[1] && '123', 1)).join('') + '</div><div class="pd">' + [...(S.keypad_order === 'calculator' ? '789456123' : '123456789')].map(digit).join('') +
       '<button type="button" class="d" data-key="." aria-label="Decimal point">.</button>' + digit(0) +
-      `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div><div class="pf" style="--n:${fk.length > 7 ? Math.ceil(fk.length / 2) : fk.length}">` +
-      fk.map(k => keyHtml(k, '', 1)).join('') + '</div></div>';
+      `<button type="button" class="d" data-act="bs" aria-label="Delete">${BS}</button></div></div>`;
   }
   // iOS won't change the keyboard of a box that already has focus, so there are two boxes: one for numbers
   // (the built-in keypad, or the phone's number pad) and one that brings up the phone's letter keyboard.
@@ -1233,6 +1234,7 @@ const UC = (() => {
     if (!padOn()) { pendingKey = ' '; to.focus(); }   // caret to the end
     from.hidden = true;
     buildKeys(); auto = false; render();
+    const kb = padEl.querySelector('[data-act="kb"]'); if (kb) kb.textContent = letters ? '123' : 'abc';
   }
   // the phone's keyboard was put away (Done, a tap elsewhere, Android's back): the built-in keypad returns
   inputs[1].addEventListener('blur', () => { if (usePad()) setTimeout(() => {

@@ -18,7 +18,7 @@ Rules:
 ## The built-in keypad
 On touch screens the app types through its own keypad (`#pad`), so it is ready the moment it opens: iOS will not raise its keyboard without a tap. Keep these true:
 - In keypad mode the number box is read-only with `inputmode="none"` and is never focused. The page draws its own caret and "next number replaces this" highlight in the overlay (`paintGhost`). Keys always type at the end.
-- Keys act on `touchstart`. Only the `abc` key waits for `touchend`: that is a user gesture, the moment iOS lets the page focus the second box (`#qa`) and raise the phone's keyboard. Putting that keyboard away returns to the keypad.
+- Keys act on `touchstart`. Only the `abc` key waits for `touchend`: that is a user gesture, the moment iOS lets the page focus the second box (`#qa`) and raise the phone's keyboard. Putting that keyboard away returns to the keypad. The extra keys are a row above the digits; with the phone's keyboard up only the digits hide, so `abc`/`123` never moves.
 - Nothing above the keypad may change height while typing (fixed box height, fixed answer-tile rows, messages inside the tile area, "Copied" as a floating note). A key that moves under a finger is a bug.
 - Every button shows a pressed state on touch-down (`.dn`). Hover styles live under `@media (hover: hover)`.
 - A keypad look is a set of CSS variables on `.pad`. To add one: write its `[data-pad="name"] .pad { ... }` block in styles.css, then add the name to `PAD_STYLES` in index.html. The settings guide and the "Keypad look" buttons pick it up from there.
