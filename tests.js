@@ -48,6 +48,45 @@ eq('a year converts to days, weeks and hours', yr, 'd=365.25 wk=52.1786 h=8766')
 eq('"2 years" and "2 yrs" read as years', [UC.parse('2 years').unit.id, UC.parse('2 yrs').unit.id].join(), 'yr,yr');
 eq('"3 y" still guesses yards, as before', UC.parse('3 y').unit.id, 'yd');
 eq('"3 ye" guesses years', UC.parse('3 ye').unit.id, 'yr');
+
+// spoken measurements (phone dictation) read the same as typed ones
+const said = t => { const p = UC.parse(t); return p.unit ? p.value + ' ' + p.unit.id : '?'; };
+eq("spoken: 3/4 of an inch", said("3/4 of an inch"), "0.75 in");
+eq("spoken: half an inch", said("half an inch"), "0.5 in");
+eq("spoken: a half inch", said("a half inch"), "0.5 in");
+eq("spoken: an inch and a half", said("an inch and a half"), "1.5 in");
+eq("spoken: one and a half inches", said("one and a half inches"), "1.5 in");
+eq("spoken: 1 and 1/2 inches", said("1 and 1/2 inches"), "1.5 in");
+eq("spoken: 2 and 3/4 inches", said("2 and 3/4 inches"), "2.75 in");
+eq("spoken: three and three quarters inches", said("three and three quarters inches"), "3.75 in");
+eq("spoken: five feet six inches", said("five feet six inches"), "66 in");
+eq("spoken: 5 feet and 6 inches", said("5 feet and 6 inches"), "66 in");
+eq("spoken: 6 foot 2 and a half", said("6 foot 2 and a half"), "74.5 in");
+eq("spoken: a quarter of an inch", said("a quarter of an inch"), "0.25 in");
+eq("spoken: three eighths of an inch", said("three eighths of an inch"), "0.375 in");
+eq("spoken: 3/8ths of an inch", said("3/8ths of an inch"), "0.375 in");
+eq("spoken: 7 thirty seconds of an inch", said("7 thirty seconds of an inch"), "0.21875 in");
+eq("spoken: three sixty-fourths of an inch", said("three sixty-fourths of an inch"), "0.046875 in");
+eq("spoken: two point five millimeters", said("two point five millimeters"), "2.5 mm");
+eq("spoken: point 5 inches", said("point 5 inches"), "0.5 in");
+eq("spoken: twenty-five millimeters", said("twenty-five millimeters"), "25 mm");
+eq("spoken: a hundred feet", said("a hundred feet"), "100 ft");
+eq("spoken: two hundred and fifty grams", said("two hundred and fifty grams"), "250 g");
+eq("spoken: negative 40 Celsius", said("negative 40 Celsius"), "-40 C");
+eq("spoken: 72 degrees Fahrenheit", said("72 degrees Fahrenheit"), "72 F");
+eq("spoken: half a mile", said("half a mile"), "0.5 mi");
+eq("spoken: a foot and a half", said("a foot and a half"), "1.5 ft");
+eq("spoken: 10 thousandths", said("10 thousandths"), "10 thou");
+eq("spoken: 60 miles an hour", said("60 miles an hour"), "60 mph");
+eq("spoken: 100 km per hour", said("100 km per hour"), "100 km/h");
+eq("spoken: an hour and a half", said("an hour and a half"), "1.5 h");
+eq("spoken: thirty seconds", said("thirty seconds"), "30 s");
+eq("spoken: how many feet in a mile", said("how many feet in a mile"), "1 mi");
+eq("spoken: What's 3/4 inch in mm?", said("What's 3/4 inch in mm?"), "0.75 in");
+eq("spoken: 5'6\"", said("5'6\""), "66 in");
+eq("spoken: 3 in to mm", said("3 in to mm"), "3 in");
+eq("spoken: 1/2", said("1/2"), "0.5 in");
+eq('spoken: a target still works', UC.parse('how many feet in a mile').target.id, 'ft');
 UC.configure(S0);
 // speed: the engine part of a keystroke (budget for the whole keystroke is 10 ms)
 const t0 = process.hrtime.bigint(); for (let i = 0; i < 2000; i++) top('1 3/8 in to mm');

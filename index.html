@@ -521,7 +521,7 @@ const UC = (() => {
       ['um', 'µm', 'micrometres', 1e-6, 'thou mm in nm', 'um micron microns micrometer micrometers micrometre micrometres'],
       ['nm', 'nm', 'nanometres', 1e-9, 'um mm thou', 'nanometer nanometers nanometre nanometres ~nm'],
       ['in', 'in', 'inches', 0.0254, 'mm in:frac cm ft:ftin ft m thou', 'in " inch inches'],
-      ['thou', 'thou', 'thousandths of an inch', 0.0000254, 'mm um in', 'thou thous mil mils'],
+      ['thou', 'thou', 'thousandths of an inch', 0.0000254, 'mm um in', 'thou thous mil mils thousandth thousandths'],
       ['ft', 'ft', 'feet', 0.3048, 'm cm mm in yd', "ft ' foot feet"],
       ['yd', 'yd', 'yards', 0.9144, 'm ft in cm', 'yd yds yard yards'],
       ['mi', 'mi', 'miles', 1609.344, 'km m ft yd', 'mi mile miles'],
@@ -578,10 +578,10 @@ const UC = (() => {
       ['mm/min', 'mm/min', 'millimetres per minute', 1e-3 / 60, 'in/min mm/s m/min', 'mm/min mmpm'],
       ['m/min', 'm/min', 'metres per minute', 1 / 60, 'ft/min m/s km/h', 'm/min mpm'],
       ['m/s', 'm/s', 'metres per second', 1, 'km/h mph ft/min', 'm/s mps m/sec'],
-      ['km/h', 'km/h', 'kilometres per hour', 1 / 3.6, 'mph m/s kn', 'km/h kmh kph kmph km/hr'],
+      ['km/h', 'km/h', 'kilometres per hour', 1 / 3.6, 'mph m/s kn', 'km/h kmh kph kmph km/hr km/hour kilometer/hour kilometers/hour kilometre/hour kilometres/hour'],
       ['in/min', 'in/min', 'inches per minute', 0.0254 / 60, 'mm/min mm/s', 'in/min ipm'],
       ['ft/min', 'ft/min', 'feet per minute', 0.3048 / 60, 'm/min m/s mph', 'ft/min fpm'],
-      ['mph', 'mph', 'miles per hour', 0.44704, 'km/h m/s kn', 'mph mi/h mi/hr'],
+      ['mph', 'mph', 'miles per hour', 0.44704, 'km/h m/s kn', 'mph mi/h mi/hr mi/hour mile/hour miles/hour'],
       ['kn', 'kn', 'knots', 1852 / 3600, 'km/h mph m/s', 'kn kt kts knot knots'],
     ]],
     ['Area', [ // base: square metre
@@ -780,11 +780,55 @@ const UC = (() => {
     p.q = p.ftin || p.compound || !p.unit ? p.shown : p.shown + ' ' + p.unit.label;
     return p;
   }
+  // ── spoken measurements (phone dictation): "three quarters of an inch" → "3/4 inch" ──
+  // Runs before the parser. Every rule needs a spoken word, so typed text passes through unchanged.
+  const ONES = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+  const TENS = 'twenty thirty forty fifty sixty seventy eighty ninety'.split(' ');
+  const NUMW = new Map([...ONES.map((w, i) => [w, i]), ...TENS.map((w, i) => [w, 20 + 10 * i])]);
+  const PARTS = { half: 2, halves: 2, third: 3, thirds: 3, quarter: 4, quarters: 4, fourth: 4, fourths: 4, eighth: 8, eighths: 8,
+    sixteenth: 16, sixteenths: 16, thirtysecond: 32, thirtyseconds: 32, sixtyfourth: 64, sixtyfourths: 64 };
+  const PART = '(half|halves|thirds?|quarters?|fourths?|eighths?|sixteenths?|thirtyseconds?|sixtyfourths?)';
+  function words(s) { // "twenty five" → 25, "two hundred" → 200, "one thousand five hundred" → 1500
+    return s.replace(/\b(?:(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand)\b[\s-]*)+/gi, m => {
+      let total = 0, n = 0, any = false;
+      for (const w of m.toLowerCase().split(/[\s-]+/).filter(Boolean)) {
+        if (w === 'hundred') n = (n || 1) * 100;
+        else if (w === 'thousand') { total += (n || 1) * 1000; n = 0; }
+        else n += NUMW.get(w);
+        any = true;
+      }
+      return any ? (total + n) + (/\s$/.test(m) ? ' ' : '') : m;
+    });
+  }
+  function spoken(s) {
+    if (!/[a-z]{2}/i.test(s)) return s;   // nothing spoken here
+    let t = ' ' + s.toLowerCase().replace(/[?!,]+$/, '').replace(/\s+/g, ' ') + ' ';
+    t = t.replace(/^ (?:what(?:'s| is)|convert|how much is) /, ' ');
+    // "how many mm in an inch" → "an inch to mm"
+    t = t.replace(/^ how many (.+?) (?:are )?(?:in|per) (.+) $/, ' $2 to $1 ');
+    // 32nds and 64ths first, so "thirty"/"sixty" are not read as numbers ("thirty seconds" alone stays a time)
+    t = t.replace(/ sixty[- ]?fourth(s?) /g, ' sixtyfourth$1 ').replace(/ thirty[- ]?second(s?) (?=of |inch|in |")/g, ' thirtysecond$1 ');
+    t = words(t.replace(/ an? (hundred|thousand) /g, ' one $1 ').replace(/(hundred|thousand) and (?=(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b)/g, '$1 '));   // "two hundred and fifty"
+    t = t.replace(/(\d) point (\d)/g, '$1.$2').replace(/ point (\d)/g, ' .$1');
+    t = t.replace(/^ (?:minus|negative) /, ' -').replace(/^ (\d+(?:\.\d+)?) below(?: zero)? /, ' -$1 ');
+    t = t.replace(/([a-z]) an? hour /g, '$1 per hour ');   // "60 miles an hour"
+    t = t.replace(/ deg(?:ree)?s? (?=(?:f|c|k|fahrenheit|celsius|centigrade|kelvin) )/g, ' ');   // "72 degrees fahrenheit": a temperature, not an angle
+    t = t.replace(/ (?:a|an) (?=\S)/g, (m, i) => i === 0 || /(?:and|of|half|to|in) $/.test(t.slice(0, i + 1)) ? ' 1 ' : m);   // "an inch", "and a half"
+    t = t.replace(/^ half /, ' 1 half ').replace(/^ (quarters?|eighths?|sixteenths?) /, ' 1 $1 ');
+    t = t.replace(new RegExp(String.raw`(\d+) ${PART}(?= |$)`, 'g'), (m, n, w) => n + '/' + PARTS[w]);   // "3 quarters" → 3/4
+    t = t.replace(/(\d\/\d+)(?:ths|th|nds|rds|s)\b/g, '$1');   // 3/8ths
+    t = t.replace(/(\d\/\d+) (?:of )?(?:(?:a|an|1) )?(?=[a-z"'])/g, '$1 ');   // "3/4 of an inch"
+    t = t.replace(/(\d) of (?=[a-z])/g, '$1 ');
+    // "1 and 1/2 inches", "6 foot 2 and 1/2", "1 inch and 1/2" (→ 1 1/2 inch), "5 feet and 6 inches"
+    t = t.replace(/(\d+) and (\d+\/\d+)/g, '$1 $2').replace(/^ (\d+) ([a-z]+) (?:and )?(\d+\/\d+) $/, ' $1 $3 $2 ');
+    t = t.replace(/([a-z"']) and (?=\d)/g, '$1 ');
+    return t.trim();
+  }
   // how: empty | pinned (no unit typed) | implied (fraction, so inches) | typed | guess (prefix match) | unknown | badnum
   function parse(raw, pinnedId) {
     const pinned = BY[pinnedId] || BY.mm;
     const p = { value: 1, unit: pinned, how: 'empty', unitText: '', cands: [], numText: '', frac: false, ftin: false, target: null, shown: '1', q: '' };
-    let s = String(raw).replace(/[′’‘`´]/g, "'").replace(/[″”“]/g, '"').replace(/''/g, '"').replace(/[−–—]/g, '-').trim();
+    let s = spoken(String(raw).replace(/[′’‘`´]/g, "'").replace(/[″”“]/g, '"').replace(/''/g, '"').replace(/[−–—]/g, '-').trim());
     if (!s) return done(p);
     let targetText = '';
     let m = s.match(/^(.+?)(?:\s+to(?:\s+|$)|\s*-?>\s*|\s*=\s*)(.*)$/i);

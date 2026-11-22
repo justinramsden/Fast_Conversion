@@ -25,6 +25,9 @@ On touch screens the app types through its own keypad (`#pad`), so it is ready t
 - Settings: `keypad`, `keypad_order`, `keypad_style`, `keypad_colors` (see CUSTOMIZE.md, which is generated from `UC.settings.guide`).
 - Not yet confirmed on a real iPhone or Android phone (only in Chrome's phone emulation): `abc` raising the keyboard from a cold start, the return to the keypad on Done, dictation, and the fit above the fold.
 
+## Spoken input
+`spoken()` in the engine rewrites dictated phrases before the parser reads them ("three quarters of an inch" → "3/4 inch", "five feet and six inches", "an hour and a half", "72 degrees fahrenheit", "how many feet in a mile"). Every rule needs a spoken word, so typed input passes through unchanged. The "spoken:" lines in tests.js list what it must read; add a line there for any new phrase.
+
 ## Tests
 Run `node tests.js` after every change and report the result. All tests must pass before committing.
 For anything that touches the page, also run `sh checks/run.sh`: it runs the engine tests, then the browser checks in `checks/` (Playwright driving Chrome as a touch phone and as a desktop) and the per-key timing. `pad.py` prints a pass count; the others print their findings and end with an empty error list. They are checks in an emulated phone, not proof on a real one.
