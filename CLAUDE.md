@@ -25,6 +25,9 @@ On touch screens the app types through its own keypad (`#pad`), so it is ready t
 - Settings: `keypad`, `keypad_order`, `keypad_style`, `keypad_colors` (see CUSTOMIZE.md, which is generated from `UC.settings.guide`).
 - Not yet confirmed on a real iPhone or Android phone (only in Chrome's phone emulation): `abc` raising the keyboard from a cold start, the return to the keypad on Done, dictation, and the fit above the fold.
 
+## Answers by size
+Each unit can have size ranges (`RANGES` in the engine, and `answers.<code> from|under <n>` lines in settings): once the typed value passes the size, that list leads and the unit's usual answers follow. The rule with the most extreme matching size wins. Feet-inches, inch fractions and pounds-ounces stop at 1000. Change defaults in `RANGES`; the AI guide lists them from there.
+
 ## Spoken input
 `spoken()` in the engine rewrites dictated phrases before the parser reads them ("three quarters of an inch" → "3/4 inch", "five feet and six inches", "an hour and a half", "72 degrees fahrenheit", "how many feet in a mile"). Every rule needs a spoken word, so typed input passes through unchanged. The "spoken:" lines in tests.js list what it must read; add a line there for any new phrase.
 

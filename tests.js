@@ -87,6 +87,29 @@ eq("spoken: 5'6\"", said("5'6\""), "66 in");
 eq("spoken: 3 in to mm", said("3 in to mm"), "3 in");
 eq("spoken: 1/2", said("1/2"), "0.5 in");
 eq('spoken: a target still works', UC.parse('how many feet in a mile').target.id, 'ft');
+
+// answers by size
+UC.configure(S0);
+const lead = (t, n = 2) => UC.rows(UC.parse(t)).slice(0, n).map(r => r.show.replace(/\u202f/g, ' ') + ' ' + r.unit).join(' | ');
+eq('size: 200 000 000 ft leads with miles and km', lead('200000000 ft'), '37 878.8 mi | 60 960 km');
+eq('size: 1000 ft leads with miles', lead('1000 ft', 1), '0.189394 mi');
+eq('size: 999 ft is unchanged', lead('999 ft', 1), '304.495 m');
+eq('size: 0.005 mm leads with µm and thou', lead('0.005 mm'), '5 µm | 0.19685 thou');
+eq('size: 4000 lb leads with tons', lead('4000 lb'), '2 US ton | 1.81437 t');
+eq('size: 400 days leads with years', lead('400 d', 1), '1.09514 yr');
+eq('size: feet and inches stop at 1000 ft', UC.rows(UC.parse('1200 m')).some(r => /′/.test(r.show)), false);
+eq('size: a typed fraction keeps its own answers', lead('3/8', 1), '0.375 in');
+{
+  const r = UC.settings.parse('answers.ft from 1000 = yd, mi\nanswers.mm under 0.01 = none\nanswers.lb from 5,000 = t', S0);
+  eq('size: range lines are read, with a comma in the number', [r.errors.length, JSON.stringify(r.s.ranges)].join(' '), '0 {"ft from 1000":["yd","mi"],"mm under 0.01":[],"lb from 5000":["t"]}');
+  eq('size: range lines print back', UC.settings.text(r.s).split('\n').filter(l => / (from|under) /.test(l)).join(' / '), 'answers.ft from 1000 = yd, mi / answers.mm under 0.01 = none / answers.lb from 5000 = t');
+  UC.configure(r.s);
+  eq('size: a person\'s range replaces the built-in one', lead('3000 ft'), '1000 yd | 0.568182 mi');
+  eq('size: none switches a range off', lead('0.005 mm', 1), '0.19685 thou');
+  eq('size: default brings it back', JSON.stringify(UC.settings.parse('answers.mm under 0.01 = default', r.s).s.ranges['mm under 0.01']), undefined);
+  eq('size: a bad size is reported', UC.settings.parse('answers.ft from 0 = mi', S0).errors.length, 1);
+  UC.configure(S0);
+}
 UC.configure(S0);
 // speed: the engine part of a keystroke (budget for the whole keystroke is 10 ms)
 const t0 = process.hrtime.bigint(); for (let i = 0; i < 2000; i++) top('1 3/8 in to mm');

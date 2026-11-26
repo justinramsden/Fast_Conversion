@@ -645,6 +645,27 @@ const UC = (() => {
   // everyday units: ranked first among guesses for typed letters
   const COMMON = new Set('mm cm m km in ft mi thou C F g kg oz lb mL L floz gal Nm kgcm ftlb inlb bar kPa psi km/h mm/min m/min mph in/min ft/min m2 ft2 kW hp N lbf'.split(' '));
 
+  // ── answers by size: a big or small value leads with units that read better ──
+  // "ft from 1000": from 1000 ft up, mi and km come first. "mm under 0.01": below 0.01 mm, µm and thou come first.
+  // The unit's own answers follow, so nothing is lost. People change these with answers.<code> from|under <n> lines.
+  const RANGES = {
+    'mm under 0.01': 'um thou', 'mm from 10000': 'm ft', 'cm from 1000': 'm ft',
+    'm under 0.01': 'mm thou', 'm from 1000': 'km mi', 'km under 1': 'm ft',
+    'in under 0.01': 'thou um', 'in from 1000': 'ft m yd', 'ft from 1000': 'mi km', 'yd from 1000': 'mi km', 'mi under 0.1': 'ft m',
+    'g from 1000': 'kg lb', 'kg from 1000': 't ton', 'lb from 2000': 'ton t',
+    'mL from 1000': 'L gal', 'L from 1000': 'm3 gal',
+    's from 3600': 'h min', 'min from 1440': 'd h', 'h from 48': 'd wk', 'd from 365': 'yr wk',
+  };
+  let RANGE = {};   // unit id → [{ dir, at, list }], built by configure
+  function rangeFor(u, a) {   // the list for a value of size a, or null
+    let best = null;
+    for (const r of RANGE[u.id] || []) {
+      if (!a || !(r.dir === 'from' ? a >= r.at : a < r.at)) continue;
+      if (!best || (r.dir === 'from' ? r.at > best.at : r.at < best.at)) best = r;   // the most extreme match wins
+    }
+    return best && best.list.length ? best.list : null;
+  }
+
   // ── formatting ──
   function fmt(x, sig = 6) {
     if (!Number.isFinite(x)) return '?';
@@ -669,6 +690,7 @@ const UC = (() => {
     let list = u.targets;
     // a typed fraction of an inch: lead with the same length as decimal inches
     if (p.frac && u.id === 'in' && !p.ftin) list = fracList;
+    else { const r = rangeFor(u, Math.abs(v)); if (r) list = [...r, ...list.filter(t => !r.includes(t))]; }
     if (p.target) list = [p.target.id, ...list.filter(t => t !== p.target.id)];
     for (const t of list) {
       const [tid, mode] = t.split(':');
@@ -682,7 +704,7 @@ const UC = (() => {
         continue;
       }
       const a = Math.abs(x), sg = x < 0 ? '-' : '';
-      if (!Number.isFinite(a) || a > 1e7) continue;
+      if (!Number.isFinite(a) || a >= 1000) continue;   // 5′ 6″, 3/8 in and 2 lb 3 oz stop reading well from 1000 ft, in or lb
       const den = p.den || 64;
       if (mode === 'frac') { // inches to the nearest 1/den
         if (p.frac && u.id === 'in') continue;
@@ -923,6 +945,11 @@ const UC = (() => {
     for (const u of UNITS) { u.own = !!(s.answers && s.answers[u.id]); u.targets = usable((s.answers && s.answers[u.id]) || u.base); }
     fracOwn = !!(s.answers && s.answers['typed-fraction']);
     fracList = usable((s.answers && s.answers['typed-fraction']) || FRAC_IN);
+    RANGE = {};
+    for (const [k, v] of Object.entries({ ...RANGES, ...(s.ranges || {}) })) {
+      const [id, dir, at] = k.split(' '), list = usable(typeof v === 'string' ? v.split(' ') : v);
+      if (BY[id]) (RANGE[id] = RANGE[id] || []).push({ dir, at: +at, list });
+    }
   }
 
   // ── settings: one short block of plain text that people and AI chat bots can edit ──
@@ -936,7 +963,7 @@ const UC = (() => {
     keys: ['/', 'space', "'", '"', '±', 'C', 'abc'],
     keypad: 'on', key_hints: 'on', keypad_order: 'phone', keypad_style: 'flat', keypad_colors: [],
     fraction: 64, digits: 6, ruler: 'on', ruler_mark: 'on', theme: 'auto',
-    units: {}, answers: {},
+    units: {}, answers: {}, ranges: {},
   };
   const KEY_TOKENS = {
     '/': '/', slash: '/', space: 'space', spc: 'space', '␣': 'space', "'": "'", '′': "'", feet: "'", '"': '"', '″': '"', inches: '"',
@@ -958,6 +985,7 @@ const UC = (() => {
   function sParse(text, current) {
     const full = /fast\s*conversion\s*settings/i.test(text);
     const s = sClone(full || !current ? S_DEFAULTS : current), errors = [], entries = [];
+    s.ranges = s.ranges || {};   // settings saved before size ranges existed
     for (const raw of String(text).split(/\r?\n/)) {
       let line = raw.trim(), name, value, strict = false;
       if (!line || line[0] === '#' || /^(```|~~~)/.test(line)) continue;
@@ -967,7 +995,7 @@ const UC = (() => {
         [name, value] = cells;
       } else {
         line = line.replace(/^(?:[-*•]|\d+[.)])\s+/, '').replace(/^`+|`+$/g, '');
-        const m = line.match(/^([A-Za-z][\w.\-/ ]*?)\s*(=|:)\s*(.*)$/);
+        const m = line.match(/^([A-Za-z][\w.\-/ ,]*?)\s*(=|:)\s*(.*)$/);   // a comma can sit in a size: answers.lb from 5,000
         if (!m) continue;
         [, name, , value] = m; strict = m[2] === '=';
       }
@@ -1010,10 +1038,19 @@ const UC = (() => {
       }
       if ((m = name.match(/^answers?[.\s_]+(.+)$/i))) {
         found++;
-        const key = m[1].trim();
+        let key = m[1].trim(), range = '';
+        const rm = key.match(/^(.+?)\s+(from|over|above|under|below)\s+(\d[\d,]*\.?\d*(?:e[-+]?\d+)?)$/i);
+        if (rm) {
+          key = rm[1]; const at = +rm[3].replace(/,/g, '');
+          if (!(at > 0)) { bad('the size must be a number above 0'); continue; }
+          range = (/^(from|over|above)$/i.test(rm[2]) ? 'from' : 'under') + ' ' + at;
+        }
         const src = /^typed[-_\s]?fractions?$/i.test(key) ? 'typed-fraction' : codeOf(key);
         if (!src) { bad(`"${key}" isn't a unit code`); continue; }
-        if (/^(default|reset)?$/i.test(value)) { delete s.answers[src]; continue; }
+        if (range && src === 'typed-fraction') { bad('typed-fraction has no size ranges'); continue; }
+        const rk = src + ' ' + range;
+        if (/^(default|reset)?$/i.test(value)) { if (range) delete s.ranges[rk]; else delete s.answers[src]; continue; }
+        if (range && /^(none|off|nothing)$/i.test(value)) { s.ranges[rk] = []; continue; }
         const cat = src === 'typed-fraction' ? 'Length' : catOf(src), out = [];
         for (const t of tokens(value)) {
           const id = MODES[t.toLowerCase()] || codeOf(t);
@@ -1021,7 +1058,8 @@ const UC = (() => {
           if (catOf(id.split(':')[0]) !== cat) { bad(`"${t}" isn't a ${cat.toLowerCase()} unit, so it was left out`); continue; }
           if (!out.includes(id)) out.push(id);
         }
-        if (out.length) s.answers[src] = out; else bad('nothing usable in the list, so it was left as it was');
+        if (!out.length) bad('nothing usable in the list, so it was left as it was');
+        else if (range) s.ranges[rk] = out; else s.answers[src] = out;
         continue;
       }
       const key = name.toLowerCase().replace(/[\s-]+/g, '_');
@@ -1081,6 +1119,7 @@ const UC = (() => {
       `ruler = ${s.ruler}`, `ruler_mark = ${s.ruler_mark}`, `theme = ${s.theme}`];
     for (const [id, d] of Object.entries(s.units)) L.push(`unit.${id} = ${fmt(d.n, 10)} ${d.of}`);
     for (const [id, list] of Object.entries(s.answers)) L.push(`answers.${id} = ${list.map(tName).join(', ')}`);
+    for (const [k, list] of Object.entries(s.ranges || {})) { const [id, dir, at] = k.split(' '); L.push(`answers.${id} ${dir} ${fmt(+at, 10)} = ${list.length ? list.map(tName).join(', ') : 'none'}`); }
     return L.join('\n');
   }
 
@@ -1129,6 +1168,7 @@ const UC = (() => {
       '| `ruler_mark` | Shade the typed length on the ruler | `on`, `off` | `on` |',
       '| `theme` | Colours of the page below the yellow band | `auto` (follow the device), `light`, `dark` | `auto` |',
       '| `answers.<code>` | The answers shown for one unit, in order. On a phone the first 4 fill the big tiles; the rest are listed below them. Add one line per unit you change. | unit codes of the same kind as `<code>`, plus `in-frac` (inch fraction), `ft-in` (feet and inches) and `lb-oz` (pounds and ounces); separated by commas. `default` puts back the built-in list. | see "Default answers" |',
+      '| `answers.<code> from <n>` / `answers.<code> under <n>` | Answers that lead once the number typed (in that unit) is at least `<n>`, or below `<n>`. The unit\'s usual answers follow them. Built-in ranges are listed under Size ranges; a line with the same unit, word and number replaces one, `none` switches it off, `default` brings it back. | as for `answers`, or `none`, `default` | see Size ranges |',
       '| `answers.typed-fraction` | The answers shown when someone types a fraction of an inch, like `3/8` or `1 3/8` | length units and the extras above | `in, mm, cm, ft, ft-in, thou` |',
       '| `unit.<code>` | Adds a unit of their own, defined as an amount of a built-in unit. It then works everywhere: typed after a number, in `unit_bar` and in `answers`. `remove` deletes it. | a number then a built-in unit code, e.g. `unit.sheet = 2440 mm`. The code is up to 12 letters, digits or _, starting with a letter, and must not be a built-in code. Not for temperatures. | none |',
       '',
@@ -1141,9 +1181,16 @@ const UC = (() => {
       defaults,
       '- typed-fraction: ' + FRAC_IN.map(tName).join(', '),
       '',
+      '## Size ranges',
+      'Built in. Each line reads: from this size of the unit up (or below it), these answers come first. Feet and inches, inch fractions and pounds and ounces stop at 1000.',
+      Object.entries(RANGES).map(([k, v]) => '- `answers.' + k + ' = ' + v.split(' ').map(tName).join(', ') + '`').join('\n'),
+      '',
       '## Examples',
       'Request: "I do woodworking. Round fractions to 1/16 and show the fraction first when I type mm."',
       'Lines to change: `fraction = 1/16` and add `answers.mm = in-frac, in, ft-in, cm`',
+      '',
+      'Request: "When I type a big number of feet, show yards and miles, not km."',
+      'Lines to change: add `answers.ft from 1000 = yd, mi`',
       '',
       'Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."',
       'Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`',

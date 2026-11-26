@@ -14,7 +14,6 @@ Everything about how it is set up lives in one short settings block. The person 
 They copy your code block, tap "Paste AI answer" in the app, and the new setup applies at once and is remembered on that device.
 
 ## Current settings
-(The defaults. In the app, "Copy AI instructions" puts the person's own settings here.)
 ```
 # Fast Conversion settings v1
 # How to edit: https://github.com/justinramsden/Fast_Conversion/blob/main/CUSTOMIZE.md
@@ -33,6 +32,7 @@ ruler = on
 ruler_mark = on
 theme = auto
 ```
+(The defaults. In the app, "Copy AI instructions" puts the person's own settings here.)
 
 ## The settings
 | Setting | What it does | Allowed values | Default |
@@ -52,6 +52,7 @@ theme = auto
 | `ruler_mark` | Shade the typed length on the ruler | `on`, `off` | `on` |
 | `theme` | Colours of the page below the yellow band | `auto` (follow the device), `light`, `dark` | `auto` |
 | `answers.<code>` | The answers shown for one unit, in order. On a phone the first 4 fill the big tiles; the rest are listed below them. Add one line per unit you change. | unit codes of the same kind as `<code>`, plus `in-frac` (inch fraction), `ft-in` (feet and inches) and `lb-oz` (pounds and ounces); separated by commas. `default` puts back the built-in list. | see "Default answers" |
+| `answers.<code> from <n>` / `answers.<code> under <n>` | Answers that lead once the number typed (in that unit) is at least `<n>`, or below `<n>`. The unit's usual answers follow them. Built-in ranges are listed under Size ranges; a line with the same unit, word and number replaces one, `none` switches it off, `default` brings it back. | as for `answers`, or `none`, `default` | see Size ranges |
 | `answers.typed-fraction` | The answers shown when someone types a fraction of an inch, like `3/8` or `1 3/8` | length units and the extras above | `in, mm, cm, ft, ft-in, thou` |
 | `unit.<code>` | Adds a unit of their own, defined as an amount of a built-in unit. It then works everywhere: typed after a number, in `unit_bar` and in `answers`. `remove` deletes it. | a number then a built-in unit code, e.g. `unit.sheet = 2440 mm`. The code is up to 12 letters, digits or _, starting with a letter, and must not be a built-in code. Not for temperatures. | none |
 
@@ -165,9 +166,35 @@ What each unit shows when it has no `answers` line:
 - mpgUK: L/100km, mpg
 - typed-fraction: in, mm, cm, ft, ft-in, thou
 
+## Size ranges
+Built in. Each line reads: from this size of the unit up (or below it), these answers come first. Feet and inches, inch fractions and pounds and ounces stop at 1000.
+- `answers.mm under 0.01 = um, thou`
+- `answers.mm from 10000 = m, ft`
+- `answers.cm from 1000 = m, ft`
+- `answers.m under 0.01 = mm, thou`
+- `answers.m from 1000 = km, mi`
+- `answers.km under 1 = m, ft`
+- `answers.in under 0.01 = thou, um`
+- `answers.in from 1000 = ft, m, yd`
+- `answers.ft from 1000 = mi, km`
+- `answers.yd from 1000 = mi, km`
+- `answers.mi under 0.1 = ft, m`
+- `answers.g from 1000 = kg, lb`
+- `answers.kg from 1000 = t, ton`
+- `answers.lb from 2000 = ton, t`
+- `answers.mL from 1000 = L, gal`
+- `answers.L from 1000 = m3, gal`
+- `answers.s from 3600 = h, min`
+- `answers.min from 1440 = d, h`
+- `answers.h from 48 = d, wk`
+- `answers.d from 365 = yr, wk`
+
 ## Examples
 Request: "I do woodworking. Round fractions to 1/16 and show the fraction first when I type mm."
 Lines to change: `fraction = 1/16` and add `answers.mm = in-frac, in, ft-in, cm`
+
+Request: "When I type a big number of feet, show yards and miles, not km."
+Lines to change: add `answers.ft from 1000 = yd, mi`
 
 Request: "Add sheets of plywood, 8 feet long, and put them on the button row after ft."
 Lines to change: add `unit.sheet = 8 ft`, and put `sheet` after `ft` in `unit_bar`
