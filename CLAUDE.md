@@ -4,7 +4,7 @@
 Speed of opening is a feature. For every change, report the expected load-time cost before building it.
 
 Current weight (gzipped, as GitHub Pages serves it):
-- index.html: about 37 KB. On a slow 4G phone (1.6 Mbps) each 1 KB costs about 5 ms on the first visit.
+- index.html: about 40 KB. On a slow 4G phone (1.6 Mbps) each 1 KB costs about 5 ms on the first visit.
 - styles.css: under 1 KB. The extra keypad looks. The page asks for it only when a look other than the default is chosen; the offline copy keeps it either way.
 - fonts/: 5 files, 71 KB (subset to Basic Latin plus the symbols the app uses; other characters fall back to a system font), loaded with font-display: swap, so text shows at once in a fallback font. Two are preloaded (42 KB).
 - Reopening the installed app reads everything from the phone's offline copy (sw.js), so it opens in about 0.3 s with or without signal. New versions download in the background and apply on the next open.
